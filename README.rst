@@ -19,24 +19,22 @@ asserting that classes implement those interfaces.
 
    .. code-block:: python
 
-      from abc import ABCMeta, abstractmethod
-
-      class Base(metaclass=ABCMeta):
-
-          @abstractmethod
-          def method(self, a, b):
-              pass
-
-      class Implementation(MyABC):
-
-          def method(self):
-              return "This shouldn't work."
-
-      impl = Implementation()
+      >>> from abc import ABCMeta, abstractmethod
+      >>> class Base(metaclass=ABCMeta):
+      ...     @abstractmethod
+      ...     def method(self, a, b):
+      ...         pass
+      ...
+      >>> class Implementation(MyABC):
+      ...     def method(self):
+      ...         return "This shouldn't work."
+      ...
+      >>> impl = Implementation()
+      >>>
 
    The equivalent code using ``interface`` produces an error indicating that
-   the signature of ``Implementation.method`` is incompatible with that of
-   ``Base.method``.
+   the signature of our implementation method is incompatible with the
+   signature of our interface declaration:
 
    .. code-block:: python
 
