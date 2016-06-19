@@ -99,7 +99,7 @@ class InterfaceMeta(type):
         """
         assert missing or mismatched, "Implementation wasn't invalid."
 
-        message = "class {C} failed to implement interface {I}:".format(
+        message = "\nclass {C} failed to implement interface {I}:".format(
             C=t.__name__,
             I=self.__name__,
         )

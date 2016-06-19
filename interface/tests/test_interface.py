@@ -48,7 +48,7 @@ def test_missing_methods():
     except TypeError as e:
         actual = str(e)
         expected = dedent(
-            """\
+            """
             class C failed to implement interface I:
 
             The following methods were not implemented:
@@ -87,7 +87,7 @@ def test_incompatible_methods():
     except TypeError as e:
         actual = str(e)
         expected = dedent(
-            """\
+            """
             class C failed to implement interface I:
 
             The following methods were implemented but had invalid signatures:
