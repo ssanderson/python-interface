@@ -28,6 +28,33 @@ def test_valid_implementation():
             pass
 
 
+def test_implement_multiple_interfaces():
+
+    class I1(Interface):  # pragma: nocover
+        def i1_method(self, arg1):
+            pass
+
+        def shared(self, a, b, c):
+            pass
+
+    class I2(Interface):  # pragma: nocover
+        def i2_method(self, arg2):
+            pass
+
+        def shared(self, a, b, c):
+            pass
+
+    class C(implements(I1), implements(I2)):  # pragma: nocover
+        def i1_method(self, arg1):
+            pass
+
+        def i2_method(self, arg2):
+            pass
+
+        def shared(self, a, b, c):
+            pass
+
+
 def test_missing_methods():
 
     class I(Interface):  # pragma: nocover
