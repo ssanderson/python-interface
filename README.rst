@@ -89,5 +89,6 @@ To declare that a particular class implements an interface ``I``, pass
        def method2(self, arg1, arg2):
            return "method2"
 
+
 .. |build status| image:: https://travis-ci.org/ssanderson/interface.svg?branch=master
    :target: https://travis-ci.org/ssanderson/interface
