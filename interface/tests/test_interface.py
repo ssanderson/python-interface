@@ -145,3 +145,27 @@ def test_reject_invalid_interface():
 
     with pytest.raises(TypeError):
         implements(NotAnInterface)
+
+
+def test_generated_attributes():
+
+    class IFace(Interface):  # pragma: nocover
+        def method(self, a, b):
+            pass
+
+        def method2(self, a, b, c):
+            pass
+
+    impl = implements(IFace)
+    assert impl.__name__ == "ImplementsIFace"
+
+    expected_doc = dedent(
+        """\
+        Implementation of IFace.
+
+        Methods
+        -------
+        method(self, a, b)
+        method2(self, a, b, c)"""
+    )
+    assert impl.__doc__ == expected_doc
