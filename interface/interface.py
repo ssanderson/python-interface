@@ -20,10 +20,6 @@ def compatible(meth_sig, iface_sig):
     return meth_sig == iface_sig
 
 
-def strict_issubclass(t, parent):
-    return issubclass(t, parent) and t is not parent
-
-
 class InterfaceMeta(type):
     """
     Metaclass for interfaces.
@@ -144,12 +140,6 @@ class Interface(metaclass=InterfaceMeta):
     """
 
 
-class Implements:
-    """
-    Base class for an implementation of an interface.
-    """
-
-
 class ImplementsMeta(type):
     """
     Metaclass for implementations of particular interfaces.
@@ -178,7 +168,7 @@ class ImplementsMeta(type):
         iface : Interface
         """
         for base in self.mro():
-            if strict_issubclass(base, Implements):
+            if isinstance(base, ImplementsMeta):
                 yield base.interface
 
 
@@ -235,7 +225,7 @@ def implements(I):
     )
     return ImplementsMeta(
         name,
-        (Implements,),
+        (object,),
         {'__doc__': doc, 'interface': I},
         base=True,
     )
