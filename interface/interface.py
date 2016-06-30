@@ -4,11 +4,20 @@ interface
 """
 from functools import wraps
 import inspect
-from operator import itemgetter
+from operator import attrgetter, itemgetter
 from textwrap import dedent
 from weakref import WeakKeyDictionary
 
+from .utils import is_a, unique
+
 first = itemgetter(0)
+getname = attrgetter('__name__')
+
+
+class IncompleteImplementation(TypeError):
+    """
+    Raised when a class intending to implement an interface fails to do so.
+    """
 
 
 def compatible(meth_sig, iface_sig):
@@ -66,9 +75,9 @@ class InterfaceMeta(type):
                 mismatched[name] = f_sig
         return missing, mismatched
 
-    def check_conforms(self, type_):
+    def verify(self, type_):
         """
-        Check whether a type implements our interface.
+        Check whether a type implements ``self``.
 
         Parameters
         ----------
@@ -96,26 +105,30 @@ class InterfaceMeta(type):
         assert missing or mismatched, "Implementation wasn't invalid."
 
         message = "\nclass {C} failed to implement interface {I}:".format(
-            C=t.__name__,
-            I=self.__name__,
+            C=getname(t),
+            I=getname(self),
         )
         if missing:
             message += dedent(
                 """
 
-                The following methods were not implemented:
+                The following methods of {I} were not implemented:
                 {missing_methods}"""
-            ).format(missing_methods=self._format_missing_methods(missing))
+            ).format(
+                I=getname(self),
+                missing_methods=self._format_missing_methods(missing)
+            )
 
         if mismatched:
             message += (
-                "\n\nThe following methods were implemented but had invalid"
+                "\n\nThe following methods of {I} were implemented with invalid"
                 " signatures:\n"
                 "{mismatched_methods}"
             ).format(
+                I=getname(self),
                 mismatched_methods=self._format_mismatched_methods(mismatched),
             )
-        return TypeError(message)
+        return IncompleteImplementation(message)
 
     def _format_missing_methods(self, missing):
         return "\n".join(sorted([
@@ -140,92 +153,123 @@ class Interface(metaclass=InterfaceMeta):
     """
 
 
+empty_set = frozenset([])
+
+
 class ImplementsMeta(type):
     """
     Metaclass for implementations of particular interfaces.
     """
-    def __new__(mcls, name, bases, clsdict, base=False):
+    def __new__(mcls, name, bases, clsdict, interfaces=empty_set):
+        assert isinstance(interfaces, frozenset)
+
         newtype = super().__new__(mcls, name, bases, clsdict)
 
-        if base:
+        if interfaces:
             # Don't do checks on the types returned by ``implements``.
             return newtype
 
+        errors = []
         for iface in newtype.interfaces():
-            iface.check_conforms(newtype)
+            try:
+                iface.verify(newtype)
+            except IncompleteImplementation as e:
+                errors.append(e)
 
-        return newtype
+        if not errors:
+            return newtype
+        elif len(errors) == 1:
+            raise errors[0]
+        else:
+            raise IncompleteImplementation("\n\n".join(map(str, errors)))
 
-    def __init__(mcls, name, bases, clsdict, base=False):
+    def __init__(mcls, name, bases, clsdict, interfaces=empty_set):
+        mcls._interfaces = interfaces
         super().__init__(name, bases, clsdict)
 
     def interfaces(self):
-        """
-        Return a generator of interfaces implemented by this type.
+        yield from unique(self._interfaces_with_duplicates())
 
-        Yields
-        ------
-        iface : Interface
-        """
-        for base in self.mro():
-            if isinstance(base, ImplementsMeta):
-                yield base.interface
+    def _interfaces_with_duplicates(self):
+        yield from self._interfaces
+        for t in filter(is_a(ImplementsMeta), self.mro()):
+            yield from t._interfaces
 
 
-def weakmemoize_implements(f):
-    "One-off weakmemoize implementation for ``implements``."
+def format_iface_method_docs(I):
+    iface_name = getname(I)
+    return "\n".join([
+        "{iface_name}.{method_name}{sig}".format(
+            iface_name=iface_name,
+            method_name=method_name,
+            sig=sig,
+        )
+        for method_name, sig in sorted(list(I._signatures.items()), key=first)
+    ])
+
+
+def _make_implements():
     _memo = WeakKeyDictionary()
 
-    @wraps(f)
-    def _f(I):
+    def implements(*interfaces):
+        """
+        Make a base for classes that implement ``*interfaces``.
+
+        Parameters
+        ----------
+        I : Interface
+
+        Returns
+        -------
+        base : type
+            A type validating that subclasses must implement all interface
+            methods of I.
+        """
+        if not interfaces:
+            raise TypeError("implements() requires at least one interface")
+
+        interfaces = frozenset(interfaces)
         try:
-            return _memo[I]
+            return _memo[interfaces]
         except KeyError:
             pass
-        ret = f(I)
-        _memo[I] = ret
-        return ret
-    return _f
 
+        for I in interfaces:
+            if not issubclass(I, Interface):
+                raise TypeError(
+                    "implements() expected an Interface, but got %s." % I
+                )
 
-@weakmemoize_implements
-def implements(I):
-    """
-    Make a base for classes that implement ``I``.
+        ordered_ifaces = tuple(sorted(interfaces, key=getname))
+        iface_names = list(map(getname, ordered_ifaces))
 
-    Parameters
-    ----------
-    I : Interface
+        name = "Implements{I}".format(I="_".join(iface_names))
+        doc = dedent(
+            """\
+            Implementation of {interfaces}.
 
-    Returns
-    -------
-    base : type
-        A type validating that subclasses must implement all interface
-        methods of I.
-    """
-    if not issubclass(I, Interface):
-        raise TypeError(
-            "implements() expected an Interface, but got %s." % I
+            Methods
+            -------
+            {methods}"""
+        ).format(
+            interfaces=', '.join(iface_names),
+            methods="\n".join(map(format_iface_method_docs, ordered_ifaces)),
         )
 
-    name = "Implements{I}".format(I=I.__name__)
-    doc = dedent(
-        """\
-        Implementation of {I}.
-
-        Methods
-        -------
-        {methods}"""
-    ).format(
-        I=I.__name__,
-        methods="\n".join(
-            "{name}{sig}".format(name=name, sig=sig)
-            for name, sig in sorted(list(I._signatures.items()), key=first)
+        result = ImplementsMeta(
+            name,
+            (object,),
+            {'__doc__': doc},
+            interfaces=interfaces,
         )
-    )
-    return ImplementsMeta(
-        name,
-        (object,),
-        {'__doc__': doc, 'interface': I},
-        base=True,
-    )
+
+        # NOTE: It's important for correct weak-memoization that this is set is
+        # stored somewhere on the resulting type.
+        assert result._interfaces is interfaces, "Interfaces not stored."
+
+        _memo[interfaces] = result
+        return result
+    return implements
+
+implements = _make_implements()
+del _make_implements
