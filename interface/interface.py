@@ -8,6 +8,7 @@ from operator import attrgetter, itemgetter
 from textwrap import dedent
 from weakref import WeakKeyDictionary
 
+from .typecheck import compatible
 from .utils import is_a, unique
 
 first = itemgetter(0)
@@ -18,15 +19,6 @@ class IncompleteImplementation(TypeError):
     """
     Raised when a class intending to implement an interface fails to do so.
     """
-
-
-def compatible(meth_sig, iface_sig):
-    """
-    Check if ``method``'s signature is compatible with ``signature``.
-    """
-    # TODO: Allow method to provide defaults and optional extensions to
-    # ``signature``.
-    return meth_sig == iface_sig
 
 
 class InterfaceMeta(type):
@@ -70,9 +62,9 @@ class InterfaceMeta(type):
             except AttributeError:
                 missing.append(name)
                 continue
-            f_sig = inspect.signature(f)
-            if not compatible(f_sig, iface_sig):
-                mismatched[name] = f_sig
+            impl_sig = inspect.signature(f)
+            if not compatible(impl_sig, iface_sig):
+                mismatched[name] = impl_sig
         return missing, mismatched
 
     def verify(self, type_):
@@ -120,10 +112,11 @@ class InterfaceMeta(type):
             )
 
         if mismatched:
-            message += (
-                "\n\nThe following methods of {I} were implemented with invalid"
-                " signatures:\n"
-                "{mismatched_methods}"
+            message += dedent(
+                """
+
+                The following methods of {I} were implemented with invalid signatures:
+                {mismatched_methods}"""
             ).format(
                 I=getname(self),
                 mismatched_methods=self._format_mismatched_methods(mismatched),
