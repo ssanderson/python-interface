@@ -287,3 +287,12 @@ def test_generated_attributes():
         OtherIFace.method3(self, a, b, c)"""
     )
     assert impl.__doc__ == expected_doc
+
+
+def test_cant_instantiate_interface():
+
+    class I(Interface):  # pragma: nocover
+        pass
+
+    with pytest.raises(TypeError):
+        I()

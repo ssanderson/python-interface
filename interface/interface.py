@@ -144,6 +144,8 @@ class Interface(metaclass=InterfaceMeta):
     """
     Base class for interface definitions.
     """
+    def __new__(cls, *args, **kwargs):
+        raise TypeError("Can't instantiate interface %s" % getname(cls))
 
 
 empty_set = frozenset([])
