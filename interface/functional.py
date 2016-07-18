@@ -11,6 +11,10 @@ def complement(f):
     return not_f
 
 
+def keyfilter(f, d):
+    return {k: v for k, v in d.items() if f(k)}
+
+
 def valfilter(f, d):
     return {k: v for k, v in d.items() if f(v)}
 

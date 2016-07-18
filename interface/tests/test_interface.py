@@ -291,8 +291,105 @@ def test_generated_attributes():
 
 def test_cant_instantiate_interface():
 
-    class I(Interface):  # pragma: nocover
+    class I(Interface):
         pass
 
     with pytest.raises(TypeError):
         I()
+
+
+def test_reject_non_callable_interface_field():
+
+    with pytest.raises(TypeError) as e:
+        class IFace(Interface):
+            x = "not allowed"
+
+
+def test_static_method():
+
+    class I(Interface):
+        @staticmethod
+        def foo(a, b):  # pragma: nocover
+            pass
+
+    class my_staticmethod(staticmethod):
+        pass
+
+    class Impl(implements(I)):
+        @my_staticmethod   # allow staticmethod subclasses
+        def foo(a, b):  # pragma: nocover
+            pass
+
+    with pytest.raises(IncompleteImplementation) as e:
+        class Impl(implements(I)):
+            @staticmethod
+            def foo(self, a, b):  # pragma: nocover
+                pass
+
+    expected = dedent(
+        """
+        class Impl failed to implement interface I:
+
+        The following methods of I were implemented with invalid signatures:
+          - foo(self, a, b) != foo(a, b)"""
+    )
+    assert expected == str(e.value)
+
+    with pytest.raises(IncompleteImplementation) as e:
+        class Impl(implements(I)):
+            def foo(a, b):  # pragma: nocover
+                pass
+
+    expected = dedent(
+        """
+        class Impl failed to implement interface I:
+
+        The following methods of I were implemented with incorrect types:
+          - foo: 'function' is not a subtype of expected type 'staticmethod'"""
+    )
+    assert expected == str(e.value)
+
+
+def test_class_method():
+
+    class I(Interface):
+        @classmethod
+        def foo(cls, a, b):  # pragma: nocover
+            pass
+
+    class my_classmethod(classmethod):
+        pass
+
+    class Impl(implements(I)):
+        @my_classmethod
+        def foo(cls, a, b):  # pragma: nocover
+            pass
+
+    with pytest.raises(IncompleteImplementation) as e:
+        class Impl(implements(I)):
+            @classmethod
+            def foo(a, b):  # pragma: nocover
+                pass
+
+    expected = dedent(
+        """
+        class Impl failed to implement interface I:
+
+        The following methods of I were implemented with invalid signatures:
+          - foo(a, b) != foo(cls, a, b)"""
+    )
+    assert expected == str(e.value)
+
+    with pytest.raises(IncompleteImplementation) as e:
+        class Impl(implements(I)):
+            def foo(cls, a, b):  # pragma: nocover
+                pass
+
+    expected = dedent(
+        """
+        class Impl failed to implement interface I:
+
+        The following methods of I were implemented with incorrect types:
+          - foo: 'function' is not a subtype of expected type 'classmethod'"""
+    )
+    assert expected == str(e.value)

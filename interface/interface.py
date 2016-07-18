@@ -8,7 +8,9 @@ from operator import attrgetter, itemgetter
 from textwrap import dedent
 from weakref import WeakKeyDictionary
 
+from .functional import complement, keyfilter
 from .typecheck import compatible
+from .typed_signature import TypedSignature
 from .utils import is_a, unique
 
 first = itemgetter(0)
@@ -21,19 +23,50 @@ class IncompleteImplementation(TypeError):
     """
 
 
+CLASS_ATTRIBUTE_WHITELIST = frozenset([
+    '__doc__',
+    '__module__',
+    '__name__',
+    '__qualname__',
+    '__weakref__',
+])
+
+is_interface_field_name = complement(CLASS_ATTRIBUTE_WHITELIST.__contains__)
+
+
+def static_get_type_attr(t, name):
+    """
+    Get a type attribute statically, circumventing the descriptor protocol.
+    """
+    for type_ in t.mro():
+        try:
+            return vars(type_)[name]
+        except KeyError:
+            pass
+    raise AttributeError(name)
+
+
 class InterfaceMeta(type):
     """
     Metaclass for interfaces.
 
-    Supplies a ``_signatures`` attribute and a ``check_implementation`` method.
+    Supplies a ``_signatures`` attribute.
     """
     def __new__(mcls, name, bases, clsdict):
         signatures = {}
-        for k, v in clsdict.items():
+        for k, v in keyfilter(is_interface_field_name, clsdict).items():
             try:
-                signatures[k] = inspect.signature(v)
-            except TypeError:
-                pass
+                signatures[k] = TypedSignature(v)
+            except TypeError as e:
+                errmsg = (
+                    "Couldn't parse signature for field "
+                    "{iface_name}.{fieldname} of type {attrtype}.".format(
+                        iface_name=name,
+                        fieldname=k,
+                        attrtype=getname(type(v)),
+                    )
+                )
+                raise TypeError(errmsg) from e
 
         clsdict['_signatures'] = signatures
         return super().__new__(mcls, name, bases, clsdict)
@@ -49,23 +82,33 @@ class InterfaceMeta(type):
 
         Returns
         -------
-        missing, mismatched : list[str], dict[str -> signature]
-            ``missing`` is a list of missing method names.
-            ``mismatched`` is a dict mapping method names to incorrect
-            signatures.
+        missing, mistyped, mismatched : list[str], dict[str -> type], dict[str -> signature]  # noqa
+            ``missing`` is a list of missing interface names.
+            ``mistyped`` is a list mapping names to incorrect types.
+            ``mismatched`` is a dict mapping names to incorrect signatures.
         """
         missing = []
+        mistyped = {}
         mismatched = {}
         for name, iface_sig in self._signatures.items():
             try:
-                f = getattr(type_, name)
+                # Don't invoke the descriptor protocol here so that we get
+                # staticmethod/classmethod/property objects instead of the
+                # functions they wrap.
+                f = static_get_type_attr(type_, name)
             except AttributeError:
                 missing.append(name)
                 continue
-            impl_sig = inspect.signature(f)
-            if not compatible(impl_sig, iface_sig):
+
+            impl_sig = TypedSignature(f)
+
+            if not issubclass(impl_sig.type, iface_sig.type):
+                mistyped[name] = impl_sig.type
+
+            if not compatible(impl_sig.signature, iface_sig.signature):
                 mismatched[name] = impl_sig
-        return missing, mismatched
+
+        return missing, mistyped, mismatched
 
     def verify(self, type_):
         """
@@ -85,16 +128,16 @@ class InterfaceMeta(type):
         -------
         None
         """
-        missing, mismatched = self._diff_signatures(type_)
-        if not missing and not mismatched:
+        missing, mistyped, mismatched = self._diff_signatures(type_)
+        if not any((missing, mistyped, mismatched)):
             return
-        raise self._invalid_implementation(type_, missing, mismatched)
+        raise self._invalid_implementation(type_, missing, mistyped, mismatched)
 
-    def _invalid_implementation(self, t, missing, mismatched):
+    def _invalid_implementation(self, t, missing, mistyped, mismatched):
         """
         Make a TypeError explaining why ``t`` doesn't implement our interface.
         """
-        assert missing or mismatched, "Implementation wasn't invalid."
+        assert missing or mistyped or mismatched, "Implementation wasn't invalid."
 
         message = "\nclass {C} failed to implement interface {I}:".format(
             C=getname(t),
@@ -109,6 +152,17 @@ class InterfaceMeta(type):
             ).format(
                 I=getname(self),
                 missing_methods=self._format_missing_methods(missing)
+            )
+
+        if mistyped:
+            message += dedent(
+                """
+
+                The following methods of {I} were implemented with incorrect types:
+                {mismatched_types}"""
+            ).format(
+                I=getname(self),
+                mismatched_types=self._format_mismatched_types(mistyped),
             )
 
         if mismatched:
@@ -127,6 +181,17 @@ class InterfaceMeta(type):
         return "\n".join(sorted([
             "  - {name}{sig}".format(name=name, sig=self._signatures[name])
             for name in missing
+        ]))
+
+    def _format_mismatched_types(self, mistyped):
+        return "\n".join(sorted([
+            "  - {name}: {actual!r} is not a subtype "
+            "of expected type {expected!r}".format(
+                name=name,
+                actual=getname(bad_type),
+                expected=getname(self._signatures[name].type),
+            )
+            for name, bad_type in mistyped.items()
         ]))
 
     def _format_mismatched_methods(self, mismatched):
