@@ -19,6 +19,7 @@ def extras_require():
         ],
     }
 
+
 def install_requires():
     if sys.version_info[:2] < (3, 5):
         return ["typing>=3.5.2"]
