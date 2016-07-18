@@ -2,8 +2,7 @@
 Utilities for typed interfaces.
 """
 from inspect import Parameter
-from itertools import dropwhile, starmap, takewhile, zip_longest
-from operator import contains
+from itertools import starmap, takewhile, zip_longest
 
 from .functional import complement, dzip, valfilter
 
@@ -12,12 +11,19 @@ def compatible(impl_sig, iface_sig):
     """
     Check whether ``impl_sig`` is compatible with ``iface_sig``.
 
+    Parameters
+    ----------
+    impl_sig : inspect.Signature
+        The signature of the implementation function.
+    iface_sig : inspect.Signature
+        The signature of the interface function.
+
     In general, an implementation is compatible with an interface if any valid
     way of passing parameters to the interface method is also valid for the
     implementation.
 
-    The following differences are allowed between an implementation and its
-    interface:
+    Consequently, the following differences are allowed between the signature
+    of an implementation methodand the signature of its interface definition:
 
     1. An implementation may add new arguments to an interface iff:
        a. All new arguments have default values.
