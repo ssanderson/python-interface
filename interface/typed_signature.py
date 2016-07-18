@@ -1,5 +1,5 @@
 """
-A subclass of inspect.signature that knows what kind of type it came from.
+A wrapper around inspect.signature that knows what kind of type it came from.
 
 This is useful for when we care about the distinction between different kinds
 of callables, e.g., between methods, classmethods, and staticmethods.
