@@ -1,9 +1,9 @@
 """
 Utilities for typed interfaces.
 """
-from inspect import Parameter
-from itertools import starmap, takewhile, zip_longest
+from itertools import starmap, takewhile
 
+from .compat import Parameter, zip_longest
 from .functional import complement, dzip, valfilter
 
 
@@ -23,7 +23,7 @@ def compatible(impl_sig, iface_sig):
     implementation.
 
     Consequently, the following differences are allowed between the signature
-    of an implementation methodand the signature of its interface definition:
+    of an implementation method and the signature of its interface definition:
 
     1. An implementation may add new arguments to an interface iff:
        a. All new arguments have default values.

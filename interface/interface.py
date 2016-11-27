@@ -8,6 +8,7 @@ from operator import attrgetter, itemgetter
 from textwrap import dedent
 from weakref import WeakKeyDictionary
 
+from .compat import raise_from, with_metaclass
 from .functional import complement, keyfilter
 from .typecheck import compatible
 from .typed_signature import TypedSignature
@@ -66,10 +67,10 @@ class InterfaceMeta(type):
                         attrtype=getname(type(v)),
                     )
                 )
-                raise TypeError(errmsg) from e
+                raise_from(TypeError(errmsg), e)
 
         clsdict['_signatures'] = signatures
-        return super().__new__(mcls, name, bases, clsdict)
+        return super(InterfaceMeta, mcls).__new__(mcls, name, bases, clsdict)
 
     def _diff_signatures(self, type_):
         """
@@ -205,7 +206,7 @@ class InterfaceMeta(type):
         ]))
 
 
-class Interface(metaclass=InterfaceMeta):
+class Interface(with_metaclass(InterfaceMeta)):
     """
     Base class for interface definitions.
     """
@@ -223,7 +224,7 @@ class ImplementsMeta(type):
     def __new__(mcls, name, bases, clsdict, interfaces=empty_set):
         assert isinstance(interfaces, frozenset)
 
-        newtype = super().__new__(mcls, name, bases, clsdict)
+        newtype = super(ImplementsMeta, mcls).__new__(mcls, name, bases, clsdict)
 
         if interfaces:
             # Don't do checks on the types returned by ``implements``.
@@ -245,15 +246,19 @@ class ImplementsMeta(type):
 
     def __init__(mcls, name, bases, clsdict, interfaces=empty_set):
         mcls._interfaces = interfaces
-        super().__init__(name, bases, clsdict)
+        super(ImplementsMeta, mcls).__init__(name, bases, clsdict)
 
     def interfaces(self):
-        yield from unique(self._interfaces_with_duplicates())
+        for elem in unique(self._interfaces_with_duplicates()):
+            yield elem
 
     def _interfaces_with_duplicates(self):
-        yield from self._interfaces
+        for elem in self._interfaces:
+            yield elem
+
         for t in filter(is_a(ImplementsMeta), self.mro()):
-            yield from t._interfaces
+            for elem in t._interfaces:
+                yield elem
 
 
 def format_iface_method_docs(I):
