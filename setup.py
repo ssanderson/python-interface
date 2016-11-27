@@ -31,7 +31,7 @@ def install_requires():
 
 setup(
     name='python-interface',
-    version='1.0.0',
+    version='1.1.0',
     description="Pythonic Interface definitions",
     author="Scott Sanderson",
     author_email="scott.b.sanderson90@gmail.com",
@@ -39,12 +39,12 @@ setup(
     long_description=long_description,
     license='Apache 2.0',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3 :: Only',
         'Topic :: Software Development :: Pre-processors',
     ],
     url='https://github.com/ssanderson/interface',
