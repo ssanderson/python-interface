@@ -4,7 +4,7 @@ A wrapper around inspect.signature that knows what kind of type it came from.
 This is useful for when we care about the distinction between different kinds
 of callables, e.g., between methods, classmethods, and staticmethods.
 """
-from inspect import signature
+from .compat import signature
 
 
 class TypedSignature(object):

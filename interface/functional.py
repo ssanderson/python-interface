@@ -3,6 +3,7 @@ functional
 ----------
 Functional programming utilities.
 """
+from .compat import viewkeys
 
 
 def complement(f):
@@ -20,4 +21,7 @@ def valfilter(f, d):
 
 
 def dzip(left, right):
-    return {k: (left.get(k), right.get(k)) for k in left.keys() & right.keys()}
+    return {
+        k: (left.get(k), right.get(k))
+        for k in viewkeys(left) & viewkeys(right)
+    }

@@ -4,7 +4,8 @@
 |build status|
 
 ``interface`` provides facilities for declaring interfaces and for statically
-asserting that classes implement those interfaces.
+asserting that classes implement those interfaces. It supports Python 2.7 and
+Python 3.4+.
 
 ``interface`` improves on Python's ``abc`` module in two ways:
 

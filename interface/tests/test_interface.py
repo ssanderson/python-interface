@@ -79,10 +79,10 @@ def generative_fixture(g):
 def combine_interfaces():
 
     def combine_with_multiple_types(*interfaces):
-        return list(map(implements, interfaces))
+        return tuple(map(implements, interfaces))
 
     def combine_with_single_type(*interfaces):
-        return [implements(*interfaces)]
+        return (implements(*interfaces),)
 
     yield combine_with_multiple_types
     yield combine_with_single_type
@@ -107,30 +107,23 @@ def test_require_implement_all_interfaces(combine_interfaces):
     bases = combine_interfaces(I1, I2)
 
     with pytest.raises(IncompleteImplementation):
-        class C(*bases):  # pragma: nocover
-            def i1_method(self, arg1):
-                pass
-
-            def i2_method(self, arg2):
-                pass
+        type('C', bases, {
+            'i1_method': lambda self, arg1: None,
+            'i2_method': lambda self, arg2: None,
+        })
 
     with pytest.raises(IncompleteImplementation):
-        class C(*bases):  # pragma: nocover
-
-            def i1_method(self, arg1):
-                pass
-
-            def shared(self, a, b, c):
-                pass
+        type('C', bases, {
+            'i1_method': lambda self, arg1: None,
+            'i2_method': lambda self, a, b, c: None,
+        })
 
     with pytest.raises(IncompleteImplementation):
-        class C(*bases):  # pragma: nocover
 
-            def i2_method(self, arg2):
-                pass
-
-            def shared(self, a, b, c):
-                pass
+        type('C', bases, {
+            'i2_method': lambda self, arg2: None,
+            'shared': lambda self, a, b, c: None,
+        })
 
 
 def test_missing_methods():

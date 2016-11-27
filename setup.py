@@ -21,9 +21,12 @@ def extras_require():
 
 
 def install_requires():
+    requires = ['six']
     if sys.version_info[:2] < (3, 5):
-        return ["typing>=3.5.2"]
-    return []
+        requires.append("typing>=3.5.2")
+    if sys.version_info[0] == 2:
+        requires.append("funcsigs>=1.0.2")
+    return requires
 
 
 setup(
