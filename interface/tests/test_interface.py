@@ -386,3 +386,65 @@ def test_class_method():
           - foo: 'function' is not a subtype of expected type 'classmethod'"""
     )
     assert expected == str(e.value)
+
+
+def test_property():
+
+    class I(Interface):
+        @property
+        def foo(self):  # pragma: nocover
+            pass
+
+    class my_property(property):
+        pass
+
+    class Impl(implements(I)):
+        @my_property
+        def foo(self):  # pragma: nocover
+            pass
+
+    with pytest.raises(IncompleteImplementation) as e:
+        class Impl(implements(I)):
+            def foo(self):  # pragma: nocover
+                pass
+
+    expected = dedent(
+        """
+        class Impl failed to implement interface I:
+
+        The following methods of I were implemented with incorrect types:
+          - foo: 'function' is not a subtype of expected type 'property'"""
+    )
+    assert expected == str(e.value)
+
+    with pytest.raises(IncompleteImplementation) as e:
+        class Impl(implements(I)):
+            @property
+            def foo(self, a, b):  # pragma: nocover
+                pass
+
+    expected = dedent(
+        """
+        class Impl failed to implement interface I:
+
+        The following methods of I were implemented with invalid signatures:
+          - foo(self, a, b) != foo(self)"""
+    )
+    assert expected == str(e.value)
+
+    with pytest.raises(IncompleteImplementation) as e:
+        class Impl(implements(I)):
+            def foo(self, a, b):  # pragma: nocover
+                pass
+
+    expected = dedent(
+        """
+        class Impl failed to implement interface I:
+
+        The following methods of I were implemented with incorrect types:
+          - foo: 'function' is not a subtype of expected type 'property'
+
+        The following methods of I were implemented with invalid signatures:
+          - foo(self, a, b) != foo(self)"""
+    )
+    assert expected == str(e.value)
