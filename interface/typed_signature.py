@@ -20,6 +20,8 @@ class TypedSignature(object):
         self._type = type(obj)
         if isinstance(obj, (classmethod, staticmethod)):
             self._signature = signature(obj.__func__)
+        elif isinstance(obj, property):
+            self._signature = signature(obj.fget)
         else:
             self._signature = signature(obj)
 
