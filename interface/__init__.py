@@ -1,7 +1,8 @@
-from .interface import implements, IncompleteImplementation, Interface
+from .interface import default, implements, InvalidImplementation, Interface
 
 __all__ = [
-    'IncompleteImplementation',
+    'default',
+    'InvalidImplementation',
     'Interface',
     'implements',
 ]

@@ -5,6 +5,7 @@ This is useful for when we care about the distinction between different kinds
 of callables, e.g., between methods, classmethods, and staticmethods.
 """
 from .compat import signature
+from .default import default
 
 
 class TypedSignature(object):
@@ -22,6 +23,8 @@ class TypedSignature(object):
             self._signature = signature(obj.__func__)
         elif isinstance(obj, property):
             self._signature = signature(obj.fget)
+        elif isinstance(obj, default):
+            self._signature = signature(obj.implementation)
         else:
             self._signature = signature(obj)
 

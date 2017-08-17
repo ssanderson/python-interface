@@ -2,14 +2,16 @@
 interface
 ---------
 """
+from collections import defaultdict
 from functools import wraps
 import inspect
 from operator import attrgetter, itemgetter
 from textwrap import dedent
 from weakref import WeakKeyDictionary
 
-from .compat import raise_from, with_metaclass
-from .functional import complement, keyfilter
+from .compat import raise_from, viewkeys, with_metaclass
+from .default import default  # noqa reexport
+from .functional import complement, keyfilter, valfilter
 from .typecheck import compatible
 from .typed_signature import TypedSignature
 from .utils import is_a, unique
@@ -18,7 +20,7 @@ first = itemgetter(0)
 getname = attrgetter('__name__')
 
 
-class IncompleteImplementation(TypeError):
+class InvalidImplementation(TypeError):
     """
     Raised when a class intending to implement an interface fails to do so.
     """
@@ -47,6 +49,39 @@ def static_get_type_attr(t, name):
     raise AttributeError(name)
 
 
+def _conflicting_defaults(typename, conflicts):
+    """Format an error message for conflicting default implementations.
+
+    Parameters
+    ----------
+    typename : str
+        Name of the type for which we're producing an error.
+    conflicts : dict[str -> list[Interface]]
+        Map from strings to interfaces providing a default with that name.
+
+    Returns
+    -------
+    message : str
+        User-facing error message.
+    """
+    message = "\nclass {C} received conflicting default implementations:".format(
+        C=typename,
+    )
+    for attrname, interfaces in conflicts.items():
+        message += dedent(
+            """
+
+            The following interfaces provided default implementations for {attr!r}:
+            {interfaces}"""
+        ).format(
+            attr=attrname,
+            interfaces="\n".join(sorted([
+                "  - {name}".format(name=iface.__name__) for iface in interfaces
+            ]))
+        )
+    return InvalidImplementation(message)
+
+
 class InterfaceMeta(type):
     """
     Metaclass for interfaces.
@@ -55,6 +90,7 @@ class InterfaceMeta(type):
     """
     def __new__(mcls, name, bases, clsdict):
         signatures = {}
+        defaults = {}
         for k, v in keyfilter(is_interface_field_name, clsdict).items():
             try:
                 signatures[k] = TypedSignature(v)
@@ -69,7 +105,11 @@ class InterfaceMeta(type):
                 )
                 raise_from(TypeError(errmsg), e)
 
+            if isinstance(v, default):
+                defaults[k] = v
+
         clsdict['_signatures'] = signatures
+        clsdict['_defaults'] = defaults
         return super(InterfaceMeta, mcls).__new__(mcls, name, bases, clsdict)
 
     def _diff_signatures(self, type_):
@@ -129,9 +169,20 @@ class InterfaceMeta(type):
         -------
         None
         """
-        missing, mistyped, mismatched = self._diff_signatures(type_)
+        raw_missing, mistyped, mismatched = self._diff_signatures(type_)
+
+        # See if we have defaults for missing methods.
+        missing = []
+        defaults_to_use = {}
+        for name in raw_missing:
+            try:
+                defaults_to_use[name] = self._defaults[name].implementation
+            except KeyError:
+                missing.append(name)
+
         if not any((missing, mistyped, mismatched)):
-            return
+            return defaults_to_use
+
         raise self._invalid_implementation(type_, missing, mistyped, mismatched)
 
     def _invalid_implementation(self, t, missing, mistyped, mismatched):
@@ -176,7 +227,7 @@ class InterfaceMeta(type):
                 I=getname(self),
                 mismatched_methods=self._format_mismatched_methods(mismatched),
             )
-        return IncompleteImplementation(message)
+        return InvalidImplementation(message)
 
     def _format_missing_methods(self, missing):
         return "\n".join(sorted([
@@ -231,18 +282,31 @@ class ImplementsMeta(type):
             return newtype
 
         errors = []
+        default_impls = {}
+        default_providers = defaultdict(list)
         for iface in newtype.interfaces():
             try:
-                iface.verify(newtype)
-            except IncompleteImplementation as e:
+                defaults_from_iface = iface.verify(newtype)
+                for name, impl in defaults_from_iface.items():
+                    default_impls[name] = impl
+                    default_providers[name].append(iface)
+            except InvalidImplementation as e:
                 errors.append(e)
+
+        # The list of providers for `name`, if there's more than one.
+        duplicate_defaults = valfilter(lambda ifaces: len(ifaces) > 1, default_providers)
+        if duplicate_defaults:
+            errors.append(_conflicting_defaults(newtype.__name__, duplicate_defaults))
+        else:
+            for name, impl in default_impls.items():
+                setattr(newtype, name, impl)
 
         if not errors:
             return newtype
         elif len(errors) == 1:
             raise errors[0]
         else:
-            raise IncompleteImplementation("\n\n".join(map(str, errors)))
+            raise InvalidImplementation("\n\n".join(map(str, errors)))
 
     def __init__(mcls, name, bases, clsdict, interfaces=empty_set):
         mcls._interfaces = interfaces
@@ -335,6 +399,7 @@ def _make_implements():
         _memo[interfaces] = result
         return result
     return implements
+
 
 implements = _make_implements()
 del _make_implements

@@ -1,7 +1,7 @@
 import pytest
 from textwrap import dedent
 
-from ..interface import implements, IncompleteImplementation, Interface
+from ..interface import implements, InvalidImplementation, Interface, default
 
 
 def test_valid_implementation():
@@ -106,19 +106,19 @@ def test_require_implement_all_interfaces(combine_interfaces):
 
     bases = combine_interfaces(I1, I2)
 
-    with pytest.raises(IncompleteImplementation):
+    with pytest.raises(InvalidImplementation):
         type('C', bases, {
             'i1_method': lambda self, arg1: None,
             'i2_method': lambda self, arg2: None,
         })
 
-    with pytest.raises(IncompleteImplementation):
+    with pytest.raises(InvalidImplementation):
         type('C', bases, {
             'i1_method': lambda self, arg1: None,
             'i2_method': lambda self, a, b, c: None,
         })
 
-    with pytest.raises(IncompleteImplementation):
+    with pytest.raises(InvalidImplementation):
 
         type('C', bases, {
             'i2_method': lambda self, arg2: None,
@@ -143,7 +143,7 @@ def test_missing_methods():
         class C(implements(I)):
             def m0(self):  # pragma: nocover
                 pass
-    except IncompleteImplementation as e:
+    except InvalidImplementation as e:
         actual = str(e)
         expected = dedent(
             """
@@ -155,7 +155,7 @@ def test_missing_methods():
         )
         assert actual == expected
     else:
-        pytest.fail("Should have raised IncompleteImplementation.")  # pragma: nocover
+        pytest.fail("Should have raised InvalidImplementation.")  # pragma: nocover
 
 
 def test_incompatible_methods():
@@ -182,7 +182,7 @@ def test_incompatible_methods():
             def m2(self, x, y):
                 pass
 
-    except IncompleteImplementation as e:
+    except InvalidImplementation as e:
         actual = str(e)
         expected = dedent(
             """
@@ -194,7 +194,7 @@ def test_incompatible_methods():
         )
         assert actual == expected
     else:
-        pytest.fail("Should have raised IncompleteImplementation.")  # pragma: nocover
+        pytest.fail("Should have raised InvalidImplementation.")  # pragma: nocover
 
 
 def test_fail_multiple_interfaces():
@@ -211,7 +211,7 @@ def test_fail_multiple_interfaces():
         class D(implements(I, J)):  # pragma: nocover
             def m1(self, z):  # incorrect signature
                 pass
-    except IncompleteImplementation as e:
+    except InvalidImplementation as e:
         actual = str(e)
         expected = dedent(
             """
@@ -313,7 +313,7 @@ def test_static_method():
         def foo(a, b):  # pragma: nocover
             pass
 
-    with pytest.raises(IncompleteImplementation) as e:
+    with pytest.raises(InvalidImplementation) as e:
         class Impl(implements(I)):
             @staticmethod
             def foo(self, a, b):  # pragma: nocover
@@ -328,7 +328,7 @@ def test_static_method():
     )
     assert expected == str(e.value)
 
-    with pytest.raises(IncompleteImplementation) as e:
+    with pytest.raises(InvalidImplementation) as e:
         class Impl(implements(I)):
             def foo(a, b):  # pragma: nocover
                 pass
@@ -358,7 +358,7 @@ def test_class_method():
         def foo(cls, a, b):  # pragma: nocover
             pass
 
-    with pytest.raises(IncompleteImplementation) as e:
+    with pytest.raises(InvalidImplementation) as e:
         class Impl(implements(I)):
             @classmethod
             def foo(a, b):  # pragma: nocover
@@ -373,7 +373,7 @@ def test_class_method():
     )
     assert expected == str(e.value)
 
-    with pytest.raises(IncompleteImplementation) as e:
+    with pytest.raises(InvalidImplementation) as e:
         class Impl(implements(I)):
             def foo(cls, a, b):  # pragma: nocover
                 pass
@@ -403,7 +403,7 @@ def test_property():
         def foo(self):  # pragma: nocover
             pass
 
-    with pytest.raises(IncompleteImplementation) as e:
+    with pytest.raises(InvalidImplementation) as e:
         class Impl(implements(I)):
             def foo(self):  # pragma: nocover
                 pass
@@ -417,7 +417,7 @@ def test_property():
     )
     assert expected == str(e.value)
 
-    with pytest.raises(IncompleteImplementation) as e:
+    with pytest.raises(InvalidImplementation) as e:
         class Impl(implements(I)):
             @property
             def foo(self, a, b):  # pragma: nocover
@@ -432,7 +432,7 @@ def test_property():
     )
     assert expected == str(e.value)
 
-    with pytest.raises(IncompleteImplementation) as e:
+    with pytest.raises(InvalidImplementation) as e:
         class Impl(implements(I)):
             def foo(self, a, b):  # pragma: nocover
                 pass
@@ -448,3 +448,125 @@ def test_property():
           - foo(self, a, b) != foo(self)"""
     )
     assert expected == str(e.value)
+
+
+def test_subclass_implements_additional_interface():
+
+    class I1(Interface):
+        def method1(self):  # pragma: nocover
+            pass
+
+    class I2(Interface):
+        def method2(self):  # pragma: nocover
+            pass
+
+    class Impl1(implements(I1)):
+        def method1(self):  # pragma: nocover
+            pass
+
+    with pytest.raises(InvalidImplementation) as e:
+        class IncorrectImpl2(Impl1, implements(I2)):
+            pass
+
+    expected = dedent(
+        """
+        class IncorrectImpl2 failed to implement interface I2:
+
+        The following methods of I2 were not implemented:
+          - method2(self)"""
+    )
+
+    assert expected == str(e.value)
+
+    with pytest.raises(InvalidImplementation) as e:
+        class Implement2ButBreak1(Impl1, implements(I2)):
+
+            def method1(self, x):  # pragma: nocover
+                pass
+
+            def method2(self):  # pragma: nocover
+                pass
+
+    expected = dedent(
+        """
+        class Implement2ButBreak1 failed to implement interface I1:
+
+        The following methods of I1 were implemented with invalid signatures:
+          - method1(self, x) != method1(self)"""
+    )
+
+    assert expected == str(e.value)
+
+
+def test_default():
+
+    class IFace(Interface):  # pragma: nocover
+
+        def method1(self):
+            pass
+
+        def method2(self):
+            pass
+
+        @default
+        def has_default(self):
+            return self.method1() + self.method2()
+
+    class C(implements(IFace)):  # pragma: nocover
+
+        def method1(self):
+            return 1
+
+        def method2(self):
+            return 2
+
+    assert C().has_default() == 3
+
+
+def test_conflicting_defaults():
+
+    class IFace1(Interface):  # pragma: nocover
+
+        def foo(self, a, b, c):
+            pass
+
+        @default
+        def has_default(self, x):
+            pass
+
+    class IFace2(Interface):  # pragma: nocover
+
+        def bar(self, x, y, z):
+            pass
+
+        @default
+        def has_default(self, x):
+            pass
+
+    with pytest.raises(InvalidImplementation) as e:
+        class Impl(implements(IFace1, IFace2)):  # pragma: nocover
+            def foo(self, a, b, c):
+                return a + b + c
+
+            def bar(self, x, y, z):
+                return x + y + z
+
+    actual = str(e.value)
+    expected = dedent(
+        """
+        class Impl received conflicting default implementations:
+
+        The following interfaces provided default implementations for 'has_default':
+          - IFace1
+          - IFace2"""
+    )
+    assert actual == expected
+
+
+def test_default_repr():
+
+    @default
+    def foo(a, b):  # pragma: nocover
+        pass
+
+    assert repr(foo) == "default({})".format(foo.implementation)
