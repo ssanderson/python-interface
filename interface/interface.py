@@ -3,14 +3,13 @@ interface
 ---------
 """
 from collections import defaultdict
-from functools import wraps
-import inspect
 from operator import attrgetter, itemgetter
 from textwrap import dedent
 from weakref import WeakKeyDictionary
 
-from .compat import raise_from, viewkeys, with_metaclass
-from .default import default  # noqa reexport
+from .compat import raise_from, with_metaclass
+from .default import default, warn_if_defaults_use_non_interface_members
+from .formatting import bulleted_list
 from .functional import complement, keyfilter, valfilter
 from .typecheck import compatible
 from .typed_signature import TypedSignature
@@ -75,9 +74,7 @@ def _conflicting_defaults(typename, conflicts):
             {interfaces}"""
         ).format(
             attr=attrname,
-            interfaces="\n".join(sorted([
-                "  - {name}".format(name=iface.__name__) for iface in interfaces
-            ]))
+            interfaces=bulleted_list(sorted(map(getname, interfaces))),
         )
     return InvalidImplementation(message)
 
@@ -107,6 +104,12 @@ class InterfaceMeta(type):
 
             if isinstance(v, default):
                 defaults[k] = v
+
+        warn_if_defaults_use_non_interface_members(
+            name,
+            defaults,
+            set(signatures.keys())
+        )
 
         clsdict['_signatures'] = signatures
         clsdict['_defaults'] = defaults
@@ -284,7 +287,7 @@ class ImplementsMeta(type):
         errors = []
         default_impls = {}
         default_providers = defaultdict(list)
-        for iface in newtype.interfaces():
+        for iface in sorted(newtype.interfaces(), key=getname):
             try:
                 defaults_from_iface = iface.verify(newtype)
                 for name, impl in defaults_from_iface.items():
@@ -306,7 +309,7 @@ class ImplementsMeta(type):
         elif len(errors) == 1:
             raise errors[0]
         else:
-            raise InvalidImplementation("\n\n".join(map(str, errors)))
+            raise InvalidImplementation("\n".join(map(str, errors)))
 
     def __init__(mcls, name, bases, clsdict, interfaces=empty_set):
         mcls._interfaces = interfaces
@@ -372,7 +375,7 @@ def _make_implements():
         ordered_ifaces = tuple(sorted(interfaces, key=getname))
         iface_names = list(map(getname, ordered_ifaces))
 
-        name = "Implements{I}".format(I="_".join(iface_names))
+        name = "Implements{}".format("_".join(iface_names))
         doc = dedent(
             """\
             Implementation of {interfaces}.

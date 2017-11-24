@@ -1,4 +1,5 @@
-from .interface import default, implements, InvalidImplementation, Interface
+from .interface import implements, InvalidImplementation, Interface
+from .default import default
 
 __all__ = [
     'default',

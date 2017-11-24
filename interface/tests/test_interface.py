@@ -1,7 +1,11 @@
 import pytest
 from textwrap import dedent
 
+from ..compat import PY3
 from ..interface import implements, InvalidImplementation, Interface, default
+
+
+py3_only = pytest.mark.skipif(not PY3, reason="Python 3 Only")
 
 
 def test_valid_implementation():
@@ -220,12 +224,12 @@ def test_fail_multiple_interfaces():
             The following methods of I were not implemented:
               - m0(self, a)
 
-            class D failed to implemente interface J:
+            class D failed to implement interface J:
 
             The following methods of J were implemented with invalid signatures:
-            - m1(self, z) != m1(self, a)
-            """
+              - m1(self, z) != m1(self, a)"""
         )
+        assert actual == expected
 
 
 def test_implements_memoization():
@@ -570,3 +574,67 @@ def test_default_repr():
         pass
 
     assert repr(foo) == "default({})".format(foo.implementation)
+
+
+@py3_only
+def test_default_warns_if_method_uses_non_interface_methods():  # pragma: nocover-py2
+
+    with pytest.warns(UserWarning) as warns:
+
+        class HasDefault(Interface):
+
+            def interface_method(self, x):
+                pass
+
+            @default
+            def foo(self, a, b):
+                # Shouldn't cause warnings.
+                self.default_method()
+                self.default_classmethod()
+                self.default_staticmethod()
+                self.interface_method(a)
+
+            @default
+            def probably_broken_method_with_no_args():
+                pass  # This eex
+
+            @default
+            @staticmethod
+            def default_staticmethod():
+                # Shouldn't cause warnings.
+                global some_nonexistent_method
+                return some_nonexistent_method()
+
+            @default
+            def default_method(self, x):
+                foo = self.foo(1, 2)  # Should be fine.
+                wut = self.not_in_interface(2, 3)  # Should cause a warning.
+                return foo + wut
+
+            @default
+            @classmethod
+            def default_classmethod(cls, x):
+                return cls.class_bar(2, 3)  # Should cause a warning.
+
+    messages = warns.list
+    assert len(messages) == 2
+
+    first = str(messages[0].message)
+    expected_first = """\
+Default implementation of HasDefault.default_classmethod uses non-interface attributes.
+
+The following attributes may be accessed but are not part of the interface:
+  - class_bar
+
+Consider changing the implementation of default_classmethod or making these attributes part of HasDefault."""  # noqa
+    assert first == expected_first
+
+    second = str(messages[1].message)
+    expected_second = """\
+Default implementation of HasDefault.default_method uses non-interface attributes.
+
+The following attributes may be accessed but are not part of the interface:
+  - not_in_interface
+
+Consider changing the implementation of default_method or making these attributes part of HasDefault."""  # noqa
+    assert second == expected_second
