@@ -81,7 +81,7 @@ if PY3:  # pragma: nocover-py2
         # another name.
         for first, second in sliding_window(dis.get_instructions(f), 2):
             if first.opname == 'LOAD_FAST' and first.argval == local_name:
-                if second.opname == 'LOAD_ATTR':
+                if second.opname in ('LOAD_ATTR', 'STORE_ATTR'):
                     used.add(second.argval)
         return used
 

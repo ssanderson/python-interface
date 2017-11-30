@@ -596,7 +596,23 @@ def test_default_warns_if_method_uses_non_interface_methods():  # pragma: nocove
 
             @default
             def probably_broken_method_with_no_args():
-                pass  # This eex
+                # This is a weird thing to do, but it shouldn't cause us to
+                # crash because of missing a first parameter.
+                pass
+
+            @default
+            @classmethod
+            def probably_broken_classmethod_with_no_args():
+                # This is a weird thing to do, but it shouldn't cause us to
+                # crash because of missing a first parameter.
+                pass
+
+            @default
+            @property
+            def probably_broken_property_with_no_args():
+                # This is a weird thing to do, but it shouldn't cause us to
+                # crash because of missing a first parameter.
+                pass
 
             @default
             @staticmethod
@@ -609,6 +625,7 @@ def test_default_warns_if_method_uses_non_interface_methods():  # pragma: nocove
             def default_method(self, x):
                 foo = self.foo(1, 2)  # Should be fine.
                 wut = self.not_in_interface(2, 3)  # Should cause a warning.
+                self.setting_non_interface = 2  # Should cause a warning.
                 return foo + wut
 
             @default
@@ -635,6 +652,7 @@ Default implementation of HasDefault.default_method uses non-interface attribute
 
 The following attributes may be accessed but are not part of the interface:
   - not_in_interface
+  - setting_non_interface
 
 Consider changing the implementation of default_method or making these attributes part of HasDefault."""  # noqa
     assert second == expected_second
