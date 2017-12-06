@@ -1,3 +1,4 @@
+import functools
 import sys
 from itertools import repeat
 
@@ -6,8 +7,19 @@ version_info = sys.version_info
 PY2 = version_info.major == 2
 PY3 = version_info.major == 3
 
-if PY2:  # pragma: nocover
+if PY2:  # pragma: nocover-py3
     from funcsigs import signature, Parameter
+
+    @functools.wraps(functools.wraps)
+    def wraps(func, *args, **kwargs):
+        outer_decorator = functools.wraps(func, *args, **kwargs)
+
+        def decorator(f):
+            wrapped = outer_decorator(f)
+            wrapped.__wrapped__ = func
+            return wrapped
+
+        return decorator
 
     def raise_from(e, from_):
         raise e
@@ -15,8 +27,30 @@ if PY2:  # pragma: nocover
     def viewkeys(d):
         return d.viewkeys()
 
-else:  # pragma: nocover
-    from inspect import signature, Parameter
+    def unwrap(func, stop=None):
+        # NOTE: implementation is taken from CPython/Lib/inspect.py, Python 3.6
+        if stop is None:
+            def _is_wrapper(f):
+                return hasattr(f, '__wrapped__')
+        else:
+            def _is_wrapper(f):
+                return hasattr(f, '__wrapped__') and not stop(f)
+        f = func  # remember the original func for error reporting
+        memo = {id(f)}  # Memoise by id to tolerate non-hashable objects
+        while _is_wrapper(func):
+            func = func.__wrapped__
+            id_func = id(func)
+            if id_func in memo:
+                raise ValueError('wrapper loop when unwrapping {!r}'.format(f))
+            memo.add(id_func)
+        return func
+
+
+else:  # pragma: nocover-py2
+    from inspect import signature, Parameter, unwrap
+
+    wraps = functools.wraps
+
     exec("def raise_from(e, from_):"  # pragma: nocover
          "    raise e from from_")
 
