@@ -3,6 +3,16 @@
 
 |build status|
 
+Installation
+~~~~~~~~~~~~
+
+.. code-block:: shell
+
+   $ pip install python-interface
+
+.. |build status| image:: https://travis-ci.org/ssanderson/interface.svg?branch=master
+   :target: https://travis-ci.org/ssanderson/interface
+
 ``interface`` provides facilities for declaring interfaces and for statically
 asserting that classes implement those interfaces. It supports Python 2.7 and
 Python 3.4+.
@@ -89,13 +99,3 @@ To declare that a particular class implements an interface ``I``, pass
 
        def method2(self, arg1, arg2):
            return "method2"
-
-Installation
-~~~~~~~~~~~~
-
-.. code-block:: shell
-
-   $ pip install python-interface
-
-.. |build status| image:: https://travis-ci.org/ssanderson/interface.svg?branch=master
-   :target: https://travis-ci.org/ssanderson/interface
