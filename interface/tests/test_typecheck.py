@@ -1,5 +1,6 @@
 from ..compat import PY3, signature
 from ..typecheck import compatible
+from ..typed_signature import TypedSignature
 
 
 def test_compatible_when_equal():
@@ -70,6 +71,11 @@ def test_allow_new_params_with_defaults_no_kwonly():
 
     assert compatible(impl, iface)
     assert not compatible(iface, impl)
+
+
+def test_first_argument_name():
+    assert TypedSignature(lambda x, y, z: x).first_argument_name == 'x'
+    assert TypedSignature(lambda: 0).first_argument_name is None
 
 
 if PY3:  # pragma: nocover
