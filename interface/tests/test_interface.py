@@ -674,3 +674,33 @@ def test_wrapped_implementation():
         @wrapping_decorator
         def f(self, a, b, c):
             pass
+
+
+def test_wrapped_implementation_incompatible():
+    class I(Interface):  # pragma: nocover
+        def f(self, a, b, c):
+            pass
+
+    def wrapping_decorator(f):
+        @wraps(f)
+        def inner(*args, **kwargs):  # pragma: nocover
+            pass
+
+        return inner
+
+    with pytest.raises(InvalidImplementation) as e:
+        class C(implements(I)):  # pragma: nocover
+            @wrapping_decorator
+            def f(self, a, b):  # missing ``c``
+                pass
+
+    actual_message = str(e.value)
+    expected_message = dedent(
+        """
+        class C failed to implement interface I:
+
+        The following methods of I were implemented with invalid signatures:
+          - f(self, a, b) != f(self, a, b, c)"""
+    )
+
+    assert actual_message == expected_message
