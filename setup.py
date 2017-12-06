@@ -31,7 +31,7 @@ def install_requires():
 
 setup(
     name='python-interface',
-    version='1.3.0',
+    version='1.4.0',
     description="Pythonic Interface definitions",
     author="Scott Sanderson",
     author_email="scott.b.sanderson90@gmail.com",
