@@ -527,6 +527,22 @@ def test_default():
     assert C().has_default() == 3
 
 
+def test_override_default():
+
+    class IFace(Interface):  # pragma: nocover
+
+        @default
+        def default(self):
+            return 'ayy'
+
+    class C(implements(IFace)):  # pragma: nocover
+
+        def default(self):
+            return 'lmao'
+
+    assert C().default() == 'lmao'
+
+
 def test_conflicting_defaults():
 
     class IFace1(Interface):  # pragma: nocover
