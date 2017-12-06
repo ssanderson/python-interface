@@ -21,6 +21,9 @@ class TypedSignature(object):
     """
     def __init__(self, obj):
         self._type = type(obj)
+        if self._type is default:
+            self._type = type(obj.implementation)
+
         self._signature = signature(extract_func(obj))
 
     @property
