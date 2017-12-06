@@ -1,3 +1,4 @@
+import functools
 import sys
 from itertools import repeat
 
@@ -6,8 +7,19 @@ version_info = sys.version_info
 PY2 = version_info.major == 2
 PY3 = version_info.major == 3
 
-if PY2:  # pragma: nocover
+if PY2:  # pragma: nocover-py3
     from funcsigs import signature, Parameter
+
+    @functools.wraps(functools.wraps)
+    def wraps(func, *args, **kwargs):
+        outer_decorator = functools.wraps(func, *args, **kwargs)
+
+        def decorator(f):
+            wrapped = outer_decorator(f)
+            wrapped.__wrapped__ = func
+            return wrapped
+
+        return decorator
 
     def raise_from(e, from_):
         raise e
@@ -15,8 +27,22 @@ if PY2:  # pragma: nocover
     def viewkeys(d):
         return d.viewkeys()
 
-else:  # pragma: nocover
-    from inspect import signature, Parameter
+    def unwrap(func, stop=None):
+        if stop is None:
+            def stop(f):
+                return False
+
+        while not stop(func):
+            try:
+                func = func.__wrapped__
+            except AttributeError:
+                return func
+
+else:  # pragma: nocover-py2
+    from inspect import signature, Parameter, unwrap
+
+    wraps = functools.wraps
+
     exec("def raise_from(e, from_):"  # pragma: nocover
          "    raise e from from_")
 

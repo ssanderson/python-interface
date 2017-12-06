@@ -1,7 +1,7 @@
 import pytest
 from textwrap import dedent
 
-from ..compat import PY3
+from ..compat import PY3, wraps
 from ..interface import implements, InvalidImplementation, Interface, default
 
 
@@ -656,3 +656,21 @@ The following attributes may be accessed but are not part of the interface:
 
 Consider changing the implementation of default_method or making these attributes part of HasDefault."""  # noqa
     assert second == expected_second
+
+
+def test_wrapped_implementation():
+    class I(Interface):  # pragma: nocover
+        def f(self, a, b, c):
+            pass
+
+    def wrapping_decorator(f):
+        @wraps(f)
+        def inner(*args, **kwargs):  # pragma: nocover
+            pass
+
+        return inner
+
+    class C(implements(I)):  # pragma: nocover
+        @wrapping_decorator
+        def f(self, a, b, c):
+            pass

@@ -6,7 +6,7 @@ of callables, e.g., between methods, classmethods, and staticmethods.
 """
 import types
 
-from .compat import signature
+from .compat import signature, unwrap
 from .default import default
 
 
@@ -45,7 +45,7 @@ class TypedSignature(object):
 BUILTIN_FUNCTION_TYPES = (types.FunctionType, types.BuiltinFunctionType)
 
 
-def extract_func(obj):
+def _inner_extract_func(obj):
     if isinstance(obj, BUILTIN_FUNCTION_TYPES):
         # Fast path, since this is the most likely case.
         return obj
@@ -54,6 +54,10 @@ def extract_func(obj):
     elif isinstance(obj, property):
         return obj.fget
     elif isinstance(obj, default):
-        return extract_func(obj.implementation)
+        return _inner_extract_func(obj.implementation)
     else:
         return obj
+
+
+def extract_func(obj):
+    return unwrap(_inner_extract_func(obj))
