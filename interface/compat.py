@@ -28,15 +28,23 @@ if PY2:  # pragma: nocover-py3
         return d.viewkeys()
 
     def unwrap(func, stop=None):
+        # NOTE: implementation is taken from CPython/Lib/inspect.py, Python 3.6
         if stop is None:
-            def stop(f):
-                return False
+            def _is_wrapper(f):
+                return hasattr(f, '__wrapped__')
+        else:
+            def _is_wrapper(f):
+                return hasattr(f, '__wrapped__') and not stop(f)
+        f = func  # remember the original func for error reporting
+        memo = {id(f)}  # Memoise by id to tolerate non-hashable objects
+        while _is_wrapper(func):
+            func = func.__wrapped__
+            id_func = id(func)
+            if id_func in memo:
+                raise ValueError('wrapper loop when unwrapping {!r}'.format(f))
+            memo.add(id_func)
+        return func
 
-        while not stop(func):
-            try:
-                func = func.__wrapped__
-            except AttributeError:
-                return func
 
 else:  # pragma: nocover-py2
     from inspect import signature, Parameter, unwrap
