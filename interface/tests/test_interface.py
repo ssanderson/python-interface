@@ -720,3 +720,156 @@ def test_wrapped_implementation_incompatible():
     )
 
     assert actual_message == expected_message
+
+
+@pytest.mark.parametrize('name', ['MyInterface', None])
+def test_interface_from_class(name):
+
+    class MyClass(object):  # pragma: nocover
+        def method1(self, x):
+            raise AssertionError("method1 called")
+
+        def method2(self, y):
+            raise AssertionError("method2 called")
+
+    iface = Interface.from_class(MyClass, name=name)
+
+    if name is None:
+        expected_name = 'MyClassInterface'
+    else:
+        expected_name = name
+
+    assert iface.__name__ == expected_name
+
+    with pytest.raises(InvalidImplementation) as e:
+        class C(implements(iface)):  # pragma: nocover
+            pass
+
+    actual_message = str(e.value)
+    expected_message = dedent(
+        """
+        class C failed to implement interface {iface}:
+
+        The following methods of {iface} were not implemented:
+          - method1(self, x)
+          - method2(self, y)"""
+    ).format(iface=expected_name)
+
+    assert actual_message == expected_message
+
+
+def test_interface_from_class_method_subset():
+
+    class C(object):  # pragma: nocover
+
+        def method1(self, x):
+            pass
+
+        def method2(self, y):
+            pass
+
+    iface = Interface.from_class(C, subset=['method1'])
+
+    class Impl(implements(iface)):  # pragma: nocover
+        def method1(self, x):
+            pass
+
+    with pytest.raises(InvalidImplementation) as e:
+
+        class BadImpl(implements(iface)):  # pragma: nocover
+            def method2(self, y):
+                pass
+
+    actual_message = str(e.value)
+    expected_message = dedent(
+        """
+        class BadImpl failed to implement interface CInterface:
+
+        The following methods of CInterface were not implemented:
+          - method1(self, x)"""
+    )
+
+    assert actual_message == expected_message
+
+
+def test_interface_from_class_inherited_methods():
+
+    class Base(object):  # pragma: nocover
+        def base_method(self, x):
+            pass
+
+    class Derived(Base):  # pragma: nocover
+        def derived_method(self, y):
+            pass
+
+    iface = Interface.from_class(Derived)
+
+    # Should be fine
+    class Impl(implements(iface)):  # pragma: nocover
+        def base_method(self, x):
+            pass
+
+        def derived_method(self, y):
+            pass
+
+    with pytest.raises(InvalidImplementation) as e:
+
+        class BadImpl(implements(iface)):  # pragma: nocover
+            def derived_method(self, y):
+                pass
+
+    actual_message = str(e.value)
+    expected_message = dedent(
+        """
+        class BadImpl failed to implement interface DerivedInterface:
+
+        The following methods of DerivedInterface were not implemented:
+          - base_method(self, x)"""
+    )
+    assert actual_message == expected_message
+
+    with pytest.raises(InvalidImplementation) as e:
+
+        class BadImpl(implements(iface)):  # pragma: nocover
+            def base_method(self, x):
+                pass
+
+    actual_message = str(e.value)
+    expected_message = dedent(
+        """
+        class BadImpl failed to implement interface DerivedInterface:
+
+        The following methods of DerivedInterface were not implemented:
+          - derived_method(self, y)"""
+    )
+
+    assert actual_message == expected_message
+
+
+def test_interface_from_class_magic_methods():
+
+    class HasMagicMethods(object):  # pragma: nocover
+        def __getitem__(self, key):
+            return key
+
+    iface = Interface.from_class(HasMagicMethods)
+
+    # Should be fine
+    class Impl(implements(iface)):  # pragma: nocover
+        def __getitem__(self, key):
+            return key
+
+    with pytest.raises(InvalidImplementation) as e:
+
+        class BadImpl(implements(iface)):  # pragma: nocover
+            pass
+
+    actual_message = str(e.value)
+    expected_message = dedent(
+        """
+        class BadImpl failed to implement interface HasMagicMethodsInterface:
+
+        The following methods of HasMagicMethodsInterface were not implemented:
+          - __getitem__(self, key)"""
+    )
+    assert actual_message == expected_message
