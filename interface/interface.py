@@ -298,7 +298,7 @@ class Interface(with_metaclass(InterfaceMeta)):
         return InterfaceMeta(
             name,
             (Interface,),
-            {name: getattr(existing_class, name) for name in subset},
+            {name: static_get_type_attr(existing_class, name) for name in subset},
         )
 
 
