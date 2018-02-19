@@ -35,6 +35,8 @@ CLASS_ATTRIBUTE_WHITELIST = frozenset([
 
 is_interface_field_name = complement(CLASS_ATTRIBUTE_WHITELIST.__contains__)
 
+TRIVIAL_CLASS_ATTRIBUTES = frozenset(dir(type('_', (object,), {})))
+
 
 def static_get_type_attr(t, name):
     """
@@ -266,6 +268,38 @@ class Interface(with_metaclass(InterfaceMeta)):
     """
     def __new__(cls, *args, **kwargs):
         raise TypeError("Can't instantiate interface %s" % getname(cls))
+
+    @classmethod
+    def from_class(cls, existing_class, subset=None, name=None):
+        """Create an interface from an existing class.
+
+        Parameters
+        ----------
+        existing_class : type
+            The type from which to extract an interface.
+        subset : list[str], optional
+            List of methods that should be included in the interface.
+            Default is to use all attributes not defined in an empty class.
+        name : str, optional
+            Name of the generated interface.
+            Default is ``existing_class.__name__ + 'Interface'``.
+
+        Returns
+        -------
+        interface : type
+            A new interface class with stubs generated from ``existing_class``.
+        """
+        if name is None:
+            name = existing_class.__name__ + 'Interface'
+
+        if subset is None:
+            subset = set(dir(existing_class)) - TRIVIAL_CLASS_ATTRIBUTES
+
+        return InterfaceMeta(
+            name,
+            (Interface,),
+            {name: getattr(existing_class, name) for name in subset},
+        )
 
 
 empty_set = frozenset([])
