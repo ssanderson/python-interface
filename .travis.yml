@@ -4,6 +4,7 @@ python:
   - "2.7"
   - "3.4"
   - "3.5"
+  - "3.6"
 
 before_script:
   - pip install tox
@@ -12,3 +13,4 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION = '2.7' ]]; then tox -e py27; fi
   - if [[ $TRAVIS_PYTHON_VERSION = '3.4' ]]; then tox -e py34; fi
   - if [[ $TRAVIS_PYTHON_VERSION = '3.5' ]]; then tox -e py35; fi
+  - if [[ $TRAVIS_PYTHON_VERSION = '3.6' ]]; then tox -e py36; fi
