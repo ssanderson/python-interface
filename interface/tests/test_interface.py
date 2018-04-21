@@ -3,6 +3,7 @@ from textwrap import dedent
 
 from ..compat import PY3, wraps
 from ..interface import implements, InvalidImplementation, Interface, default
+from ..default import UnsafeDefault
 
 
 py3_only = pytest.mark.skipif(not PY3, reason="Python 3 Only")
@@ -595,7 +596,7 @@ def test_default_repr():
 @py3_only
 def test_default_warns_if_method_uses_non_interface_methods():  # pragma: nocover-py2
 
-    with pytest.warns(UserWarning) as warns:
+    with pytest.warns(UnsafeDefault) as warns:
 
         class HasDefault(Interface):
 
@@ -654,23 +655,23 @@ def test_default_warns_if_method_uses_non_interface_methods():  # pragma: nocove
 
     first = str(messages[0].message)
     expected_first = """\
-Default implementation of HasDefault.default_classmethod uses non-interface attributes.
+Default for HasDefault.default_classmethod uses non-interface attributes.
 
-The following attributes may be accessed but are not part of the interface:
+The following attributes are used but are not part of the interface:
   - class_bar
 
-Consider changing the implementation of default_classmethod or making these attributes part of HasDefault."""  # noqa
+Consider changing HasDefault.default_classmethod or making these attributes part of HasDefault."""  # noqa
     assert first == expected_first
 
     second = str(messages[1].message)
     expected_second = """\
-Default implementation of HasDefault.default_method uses non-interface attributes.
+Default for HasDefault.default_method uses non-interface attributes.
 
-The following attributes may be accessed but are not part of the interface:
+The following attributes are used but are not part of the interface:
   - not_in_interface
   - setting_non_interface
 
-Consider changing the implementation of default_method or making these attributes part of HasDefault."""  # noqa
+Consider changing HasDefault.default_method or making these attributes part of HasDefault."""  # noqa
     assert second == expected_second
 
 
