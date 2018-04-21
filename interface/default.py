@@ -16,17 +16,17 @@ class default(object):
         return "{}({})".format(type(self).__name__, self.implementation)
 
 
-class DefaultUsesNonInterfaceMembers(UserWarning):
+class UnsafeDefault(UserWarning):
     pass
 
 
 if PY3:  # pragma: nocover-py2
     _DEFAULT_USES_NON_INTERFACE_MEMBER_TEMPLATE = (
-        "Default implementation of {iface}.{method} uses non-interface attributes.\n\n"
-        "The following attributes may be accessed but are not part of "
+        "Default for {iface}.{method} uses non-interface attributes.\n\n"
+        "The following attributes are used but are not part of "
         "the interface:\n"
         "{non_members}\n\n"
-        "Consider changing the implementation of {method} or making these attributes"
+        "Consider changing {iface}.{method} or making these attributes"
         " part of {iface}."
     )
 
@@ -40,7 +40,7 @@ if PY3:  # pragma: nocover-py2
                 iface=interface_name,
                 method=method_name,
                 non_members=bulleted_list(attrs),
-            ))
+            ), category=UnsafeDefault, stacklevel=3)
 
     def non_member_attributes(defaults, members):
         from .typed_signature import TypedSignature
