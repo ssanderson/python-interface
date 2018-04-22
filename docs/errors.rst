@@ -7,7 +7,7 @@ when an interface definition isn't satisfied.
 An implementation can fail to implement an interface in a variety of ways:
 
 Missing Methods
----------------
+~~~~~~~~~~~~~~~
 
 Implementations must define all the methods declared in an interface.
 
@@ -44,7 +44,7 @@ The above example produces the following error message::
     - prove(self, theorem)
 
 Methods with Incompatible Signatures
-------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Implementations must define interface methods with compatible signatures:
 
@@ -87,7 +87,7 @@ Implementations must define interface methods with compatible signatures:
      - prove(self, lemma) != prove(self, theorem)
 
 Method/Property Mismatches
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If an interface defines an attribute as a :class:`property`, the corresponding
 implementation attribute must also be a :class:`property`:
