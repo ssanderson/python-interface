@@ -72,7 +72,7 @@ Implementations must define interface methods with compatible signatures:
        def prove(self, lemma):
            print("That's almost a theorem, right?")
 
-       def calculate(self, x, y, z):
+       def calculate(self, x, y):
            return x + y
 
 ::
