@@ -18,6 +18,6 @@ Installation
 
    $ pip install python-interface
 
-.. _`documentation` : interface.readthedocs.io
+.. _`documentation` : http://interface.readthedocs.io
 .. |build status| image:: https://travis-ci.org/ssanderson/interface.svg?branch=master
    :target: https://travis-ci.org/ssanderson/interface
