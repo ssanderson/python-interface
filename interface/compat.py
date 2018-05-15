@@ -45,9 +45,23 @@ if PY2:  # pragma: nocover-py3
             memo.add(id_func)
         return func
 
+    def is_coroutine(f):
+        return False
+
 
 else:  # pragma: nocover-py2
     from inspect import signature, Parameter, unwrap
+
+    try:
+        from inspect import CO_COROUTINE, CO_ITERABLE_COROUTINE
+    except ImportError:
+        # If we don't have these flags, there aren't any coroutines yet in
+        # Python 3.
+        def is_coroutine(f):
+            return False
+    else:
+        def is_coroutine(f):
+            return f.__code__.co_flags & (CO_COROUTINE | CO_ITERABLE_COROUTINE)
 
     wraps = functools.wraps
 
@@ -96,3 +110,17 @@ def with_metaclass(meta, *bases):
         def __new__(cls, name, this_bases, d):
             return meta(name, bases, d)
     return type.__new__(metaclass, 'temporary_class', (), {})
+
+
+__all__ = [
+    'PY2',
+    'PY3',
+    'Parameter',
+    'is_coroutine',
+    'signature',
+    'unwrap',
+    'version_info',
+    'viewkeys',
+    'with_metaclass',
+    'wraps',
+]
