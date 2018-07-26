@@ -4,7 +4,7 @@ Using :mod:`interface`
 Declaring Interfaces
 ~~~~~~~~~~~~~~~~~~~~
 
-An interface describes a collection of metrhods and properties that should be
+An interface describes a collection of methods and properties that should be
 provided by implementors.
 
 We implement an interface by subclassing from :class:`interface.Interface` and
