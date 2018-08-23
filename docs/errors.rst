@@ -105,6 +105,7 @@ implementation attribute must also be a :class:`property`:
            return "Ludwig Wittgenstein"
 
 ::
+
    Traceback (most recent call last):
      ...
    interface.interface.InvalidImplementation:
