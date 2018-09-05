@@ -80,7 +80,7 @@ def zip_longest(left, right):
             right = repeat(None)
 
         if left_done and right_done:
-            raise StopIteration()
+            break
 
         yield left_yielded, right_yielded
 
