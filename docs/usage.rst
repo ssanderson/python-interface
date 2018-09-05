@@ -7,7 +7,7 @@ Declaring Interfaces
 An interface describes a collection of methods and properties that should be
 provided by implementors.
 
-We implement an interface by subclassing from :class:`interface.Interface` and
+We create an interface by subclassing from :class:`interface.Interface` and
 defining stubs for methods that should be part of the interface:
 
 .. code-block:: python
