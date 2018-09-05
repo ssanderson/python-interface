@@ -6,11 +6,11 @@ What is an Interface?
 
 In software generally, an **interface** is a description of the
 **capabilities** provided by a unit of code. In object-oriented languages like
-Python, interfaces are often defined by lists of **method signatures** which
-must be provided by a class.
+Python, interfaces are often defined by a collection of **method signatures**
+which must be provided by a class.
 
 In :mod:`interface`, an interface is a subclass of :class:`interface.Interface`
-that defines a list of methods with empty bodies. For example, the interface
+that defines one or more methods with empty bodies. For example, the interface
 definition for a simple `Key-Value Store`_ might look like this:
 
 .. code-block:: python
