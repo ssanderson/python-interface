@@ -18,10 +18,17 @@ definition for a simple `Key-Value Store`_ might look like this:
    class KeyValueStore(interface.Interface):
 
        def get(self, key):
-           pass
+           """Get the value for ``key``.
+           """
 
        def set(self, key, value):
-           pass
+           """Set the value for ``key`` to ``value``.
+           """
+
+       def delete(self, key):
+           """Delete the value for ``key``.
+           """
+
 
 Why Are Interfaces Useful?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
