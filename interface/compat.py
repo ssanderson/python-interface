@@ -1,6 +1,5 @@
 import functools
 import sys
-from itertools import repeat
 
 version_info = sys.version_info
 
@@ -8,6 +7,7 @@ PY2 = version_info.major == 2
 PY3 = version_info.major == 3
 
 if PY2:  # pragma: nocover-py3
+    from itertools import izip_longest as zip_longest
     from funcsigs import signature, Parameter
 
     @functools.wraps(functools.wraps)
@@ -48,6 +48,7 @@ if PY2:  # pragma: nocover-py3
 
 else:  # pragma: nocover-py2
     from inspect import signature, Parameter, unwrap
+    from itertools import zip_longest
 
     wraps = functools.wraps
 
@@ -56,33 +57,6 @@ else:  # pragma: nocover-py2
 
     def viewkeys(d):
         return d.keys()
-
-
-def zip_longest(left, right):
-    """Simple zip_longest that only supports two iterators and None default.
-    """
-    left = iter(left)
-    right = iter(right)
-    left_done = False
-    right_done = False
-    while True:
-        try:
-            left_yielded = next(left)
-        except StopIteration:
-            left_done = True
-            left_yielded = None
-            left = repeat(None)
-        try:
-            right_yielded = next(right)
-        except StopIteration:
-            right_done = True
-            right_yielded = None
-            right = repeat(None)
-
-        if left_done and right_done:
-            break
-
-        yield left_yielded, right_yielded
 
 
 # Taken from six version 1.10.0.
