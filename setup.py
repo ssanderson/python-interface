@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
-import sys
 
 long_description = ''
 
-if 'upload' in sys.argv:
-    with open('README.rst') as f:
-        long_description = f.read()
+with open('README.rst') as f:
+    long_description = f.read()
 
 
 def extras_require():
@@ -30,7 +28,7 @@ def install_requires():
 
 setup(
     name='python-interface',
-    version='1.5.2',
+    version='1.5.3',
     description="Pythonic Interface definitions",
     author="Scott Sanderson",
     author_email="scott.b.sanderson90@gmail.com",
