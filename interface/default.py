@@ -52,6 +52,9 @@ if PY3:  # pragma: nocover-py2
                 # staticmethods can't use attributes of the interface.
                 continue
 
+            elif isinstance(impl, property):
+                impl = impl.fget
+
             self_name = TypedSignature(impl).first_argument_name
             if self_name is None:
                 # No parameters.
@@ -73,13 +76,20 @@ if PY3:  # pragma: nocover-py2
         The analysis performed by this function is conservative, meaning that
         it's not guaranteed to find **all** attributes used.
         """
+        try:
+            instrs = dis.get_instructions(f)
+        except TypeError:
+            # Got a default wrapping an object that's not a python function. Be
+            # conservative and assume this is safe.
+            return set()
+
         used = set()
         # Find sequences of the form: LOAD_FAST(local_name), LOAD_ATTR(<name>).
         # This will find all usages of the form ``local_name.<name>``.
         #
         # It will **NOT** find usages in which ``local_name`` is aliased to
         # another name.
-        for first, second in sliding_window(dis.get_instructions(f), 2):
+        for first, second in sliding_window(instrs, 2):
             if first.opname == 'LOAD_FAST' and first.argval == local_name:
                 if second.opname in ('LOAD_ATTR', 'LOAD_METHOD', 'STORE_ATTR'):
                     used.add(second.argval)

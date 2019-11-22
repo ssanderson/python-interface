@@ -30,7 +30,7 @@ def install_requires():
 
 setup(
     name='python-interface',
-    version='1.5.0',
+    version='1.5.2',
     description="Pythonic Interface definitions",
     author="Scott Sanderson",
     author_email="scott.b.sanderson90@gmail.com",
