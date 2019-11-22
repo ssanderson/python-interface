@@ -528,6 +528,29 @@ def test_default():
     assert C().has_default() == 3
 
 
+def test_default_property():
+
+    class IFace(Interface):  # pragma: nocover
+
+        @default
+        @property
+        def default_prop(self):
+            return True
+
+    class C(implements(IFace)):  # pragma: nocover
+        pass
+
+    assert C().default_prop
+
+    class D(implements(IFace)):
+
+        @property
+        def default_prop(self):
+            return False
+
+    assert not D().default_prop
+
+
 def test_override_default():
 
     class IFace(Interface):  # pragma: nocover
