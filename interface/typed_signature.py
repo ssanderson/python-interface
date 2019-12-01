@@ -6,7 +6,7 @@ of callables, e.g., between methods, classmethods, and staticmethods.
 """
 import types
 
-from .compat import signature, unwrap
+from .compat import is_coroutine, signature, unwrap
 from .default import default
 
 
@@ -24,11 +24,17 @@ class TypedSignature(object):
         if self._type is default:
             self._type = type(obj.implementation)
 
-        self._signature = signature(extract_func(obj))
+        func = extract_func(obj)
+        self._signature = signature(func)
+        self._is_coroutine = is_coroutine(func)
 
     @property
     def signature(self):
         return self._signature
+
+    @property
+    def is_coroutine(self):
+        return self._is_coroutine
 
     @property
     def first_argument_name(self):

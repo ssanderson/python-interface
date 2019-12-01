@@ -1,15 +1,16 @@
-from inspect import signature
+import types
 
 from ..typecheck import compatible
+from ..typed_signature import TypedSignature
 
 
 def test_allow_new_params_with_defaults_with_kwonly():
 
-    @signature
+    @TypedSignature
     def iface(a, b, c):  # pragma: nocover
         pass
 
-    @signature
+    @TypedSignature
     def impl(a, b, c, d=3, e=5, *, f=5):  # pragma: nocover
         pass
 
@@ -19,11 +20,11 @@ def test_allow_new_params_with_defaults_with_kwonly():
 
 def test_allow_reorder_kwonlys():
 
-    @signature
+    @TypedSignature
     def foo(a, b, c, *, d, e, f):  # pragma: nocover
         pass
 
-    @signature
+    @TypedSignature
     def bar(a, b, c, *, f, d, e):  # pragma: nocover
         pass
 
@@ -33,11 +34,11 @@ def test_allow_reorder_kwonlys():
 
 def test_allow_default_changes():
 
-    @signature
+    @TypedSignature
     def foo(a, b, c=3, *, d=1, e, f):  # pragma: nocover
         pass
 
-    @signature
+    @TypedSignature
     def bar(a, b, c=5, *, f, e, d=12):  # pragma: nocover
         pass
 
@@ -47,13 +48,42 @@ def test_allow_default_changes():
 
 def test_disallow_kwonly_to_positional():
 
-    @signature
+    @TypedSignature
     def foo(a, *, b):  # pragma: nocover
         pass
 
-    @signature
+    @TypedSignature
     def bar(a, b):  # pragma: nocover
         pass
 
     assert not compatible(foo, bar)
     assert not compatible(bar, foo)
+
+
+def test_async_def_functions_are_coroutines():
+
+    @TypedSignature
+    async def foo(a, b):  # pragma: nocover
+        pass
+
+    @TypedSignature
+    def bar(a, b):  # pragma: nocover
+        pass
+
+    assert foo.is_coroutine
+    assert not compatible(foo, bar)
+
+
+def test_types_dot_coroutines_are_coroutines():
+
+    @TypedSignature
+    @types.coroutine
+    def foo(a, b):  # pragma: nocover
+        yield from foo()
+
+    @TypedSignature
+    def bar(a, b):  # pragma: nocover
+        pass
+
+    assert foo.is_coroutine
+    assert not compatible(foo, bar)

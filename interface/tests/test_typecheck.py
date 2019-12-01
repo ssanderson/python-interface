@@ -1,17 +1,17 @@
-from ..compat import PY3, signature
+from ..compat import PY3
 from ..typecheck import compatible
 from ..typed_signature import TypedSignature
 
 
 def test_compatible_when_equal():
 
-    @signature
+    @TypedSignature
     def foo(a, b, c):  # pragma: nocover
         pass
 
     assert compatible(foo, foo)
 
-    @signature
+    @TypedSignature
     def bar():  # pragma: nocover
         pass
 
@@ -20,11 +20,11 @@ def test_compatible_when_equal():
 
 def test_disallow_new_or_missing_positionals():
 
-    @signature
+    @TypedSignature
     def foo(a, b):  # pragma: nocover
         pass
 
-    @signature
+    @TypedSignature
     def bar(a):  # pragma: nocover
         pass
 
@@ -34,11 +34,11 @@ def test_disallow_new_or_missing_positionals():
 
 def test_disallow_remove_defaults():
 
-    @signature
+    @TypedSignature
     def iface(a, b=3):  # pragma: nocover
         pass
 
-    @signature
+    @TypedSignature
     def impl(a, b):  # pragma: nocover
         pass
 
@@ -47,11 +47,11 @@ def test_disallow_remove_defaults():
 
 def test_disallow_reorder_positionals():
 
-    @signature
+    @TypedSignature
     def foo(a, b):  # pragma: nocover
         pass
 
-    @signature
+    @TypedSignature
     def bar(b, a):  # pragma: nocover
         pass
 
@@ -61,11 +61,11 @@ def test_disallow_reorder_positionals():
 
 def test_allow_new_params_with_defaults_no_kwonly():
 
-    @signature
+    @TypedSignature
     def iface(a, b, c):  # pragma: nocover
         pass
 
-    @signature
+    @TypedSignature
     def impl(a, b, c, d=3, e=5, f=5):  # pragma: nocover
         pass
 
@@ -78,5 +78,20 @@ def test_first_argument_name():
     assert TypedSignature(lambda: 0).first_argument_name is None
 
 
+def test_regular_functions_arent_coroutines():
+
+    @TypedSignature
+    def foo(a, b, c):  # pragma: nocover
+        pass
+
+    assert not foo.is_coroutine
+
+    @TypedSignature
+    def bar(a, b, c):  # pragma: nocover
+        yield 1
+
+    assert not bar.is_coroutine
+
+
 if PY3:  # pragma: nocover
-    from ._py3_typecheck_tests import *
+    from ._py3_typecheck_tests import *  # noqa

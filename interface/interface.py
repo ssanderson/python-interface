@@ -147,7 +147,7 @@ class InterfaceMeta(type):
             if not issubclass(impl_sig.type, iface_sig.type):
                 mistyped[name] = impl_sig.type
 
-            if not compatible(impl_sig.signature, iface_sig.signature):
+            if not compatible(impl_sig, iface_sig):
                 mismatched[name] = impl_sig
 
         return missing, mistyped, mismatched
@@ -249,10 +249,12 @@ class InterfaceMeta(type):
 
     def _format_mismatched_methods(self, mismatched):
         return "\n".join(sorted([
-            "  - {name}{actual} != {name}{expected}".format(
+            "  - {actual_async}{name}{actual} != {expected_async}{name}{expected}".format(
                 name=name,
                 actual=bad_sig,
+                actual_async="async " if bad_sig.is_coroutine else "",
                 expected=self._signatures[name],
+                expected_async="async " if self._signatures[name].is_coroutine else "",
             )
             for name, bad_sig in mismatched.items()
         ]))

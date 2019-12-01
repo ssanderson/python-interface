@@ -897,3 +897,7 @@ def test_interface_from_class_magic_methods():
           - __getitem__(self, key)"""
     )
     assert actual_message == expected_message
+
+
+if PY3:
+    from ._py3_interface_tests import *  # noqa
