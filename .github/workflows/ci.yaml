@@ -24,7 +24,7 @@ jobs:
       - uses: pre-commit/action@v1.0.1
 
   tests:
-    names: ${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
