@@ -1,6 +1,5 @@
+from ..compat import unwrap, wraps
 from ..utils import is_a, unique
-
-from ..compat import wraps, unwrap
 
 
 def test_unique():

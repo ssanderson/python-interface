@@ -5,6 +5,7 @@ Functional programming utilities.
 """
 from collections import deque
 from operator import itemgetter
+
 from .compat import viewkeys
 
 

@@ -1,10 +1,10 @@
-import pytest
 from textwrap import dedent
 
-from ..compat import PY3, wraps
-from ..interface import implements, InvalidImplementation, Interface, default
-from ..default import UnsafeDefault
+import pytest
 
+from ..compat import PY3, wraps
+from ..default import UnsafeDefault
+from ..interface import default, implements, Interface, InvalidImplementation
 
 py3_only = pytest.mark.skipif(not PY3, reason="Python 3 Only")
 
