@@ -298,7 +298,7 @@ def test_cant_instantiate_interface():
 
 def test_reject_non_callable_interface_field():
 
-    with pytest.raises(TypeError) as e:
+    with pytest.raises(TypeError):
         class IFace(Interface):
             x = "not allowed"
 

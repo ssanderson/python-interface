@@ -75,10 +75,10 @@ def params_compatible(impl, iface):
         return has_default(impl)
 
     return (
-        impl.name == iface.name and
-        impl.kind == iface.kind and
-        has_default(impl) == has_default(iface) and
-        annotations_compatible(impl, iface)
+        impl.name == iface.name
+        and impl.kind == iface.kind
+        and has_default(impl) == has_default(iface)
+        and annotations_compatible(impl, iface)
     )
 
 

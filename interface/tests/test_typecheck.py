@@ -79,4 +79,4 @@ def test_first_argument_name():
 
 
 if PY3:  # pragma: nocover
-    from ._py3_typecheck_tests import *
+    from ._py3_typecheck_tests import *  # noqa

@@ -63,3 +63,4 @@ MANIFEST
 
 # pytest
 .cache
+.pytest_cache
