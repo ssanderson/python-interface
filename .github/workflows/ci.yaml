@@ -43,6 +43,8 @@ jobs:
             python-version: 3.6
           - name: py37
             python-version: 3.7
+          - name: py38
+            python-version: 3.8
 
     steps:
       - name: Dump Matrix Config
