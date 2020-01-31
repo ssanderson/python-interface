@@ -10,9 +10,7 @@ py3_only = pytest.mark.skipif(not PY3, reason="Python 3 Only")
 
 
 def test_valid_implementation():
-
     class I(Interface):  # pragma: nocover
-
         def m0(self):
             pass
 
@@ -33,12 +31,12 @@ def test_valid_implementation():
             pass
 
     for i in range(10):
+
         class C(C):
             pass
 
 
 def test_implement_multiple_interfaces_correctly():
-
     class I1(Interface):  # pragma: nocover
         def i1_method(self, arg1):
             pass
@@ -82,7 +80,6 @@ def generative_fixture(g):
 
 @generative_fixture
 def combine_interfaces():
-
     def combine_with_multiple_types(*interfaces):
         return tuple(map(implements, interfaces))
 
@@ -94,7 +91,6 @@ def combine_interfaces():
 
 
 def test_require_implement_all_interfaces(combine_interfaces):
-
     class I1(Interface):  # pragma: nocover
         def i1_method(self, arg1):
             pass
@@ -112,29 +108,39 @@ def test_require_implement_all_interfaces(combine_interfaces):
     bases = combine_interfaces(I1, I2)
 
     with pytest.raises(InvalidImplementation):
-        type('C', bases, {
-            'i1_method': lambda self, arg1: None,
-            'i2_method': lambda self, arg2: None,
-        })
+        type(
+            "C",
+            bases,
+            {
+                "i1_method": lambda self, arg1: None,
+                "i2_method": lambda self, arg2: None,
+            },
+        )
 
     with pytest.raises(InvalidImplementation):
-        type('C', bases, {
-            'i1_method': lambda self, arg1: None,
-            'i2_method': lambda self, a, b, c: None,
-        })
+        type(
+            "C",
+            bases,
+            {
+                "i1_method": lambda self, arg1: None,
+                "i2_method": lambda self, a, b, c: None,
+            },
+        )
 
     with pytest.raises(InvalidImplementation):
 
-        type('C', bases, {
-            'i2_method': lambda self, arg2: None,
-            'shared': lambda self, a, b, c: None,
-        })
+        type(
+            "C",
+            bases,
+            {
+                "i2_method": lambda self, arg2: None,
+                "shared": lambda self, a, b, c: None,
+            },
+        )
 
 
 def test_missing_methods():
-
     class I(Interface):  # pragma: nocover
-
         def m0(self):
             pass
 
@@ -145,9 +151,11 @@ def test_missing_methods():
             pass
 
     try:
+
         class C(implements(I)):
             def m0(self):  # pragma: nocover
                 pass
+
     except InvalidImplementation as e:
         actual = str(e)
         expected = dedent(
@@ -164,9 +172,7 @@ def test_missing_methods():
 
 
 def test_incompatible_methods():
-
     class I(Interface):  # pragma: nocover
-
         def m0(self):
             pass
 
@@ -177,6 +183,7 @@ def test_incompatible_methods():
             pass
 
     try:
+
         class C(implements(I)):  # pragma: nocover
             def m0(self):
                 pass
@@ -203,7 +210,6 @@ def test_incompatible_methods():
 
 
 def test_fail_multiple_interfaces():
-
     class I(Interface):  # pragma: nocover
         def m0(self, a):
             pass
@@ -213,9 +219,11 @@ def test_fail_multiple_interfaces():
             pass
 
     try:
+
         class D(implements(I, J)):  # pragma: nocover
             def m1(self, z):  # incorrect signature
                 pass
+
     except InvalidImplementation as e:
         actual = str(e)
         expected = dedent(
@@ -234,7 +242,6 @@ def test_fail_multiple_interfaces():
 
 
 def test_implements_memoization():
-
     class I(Interface):
         pass
 
@@ -258,7 +265,6 @@ def test_reject_invalid_interface():
 
 
 def test_generated_attributes():
-
     class IFace(Interface):  # pragma: nocover
         def method(self, a, b):
             pass
@@ -267,7 +273,6 @@ def test_generated_attributes():
             pass
 
     class OtherIFace(Interface):  # pragma: nocover
-
         def method3(self, a, b, c):
             pass
 
@@ -288,7 +293,6 @@ def test_generated_attributes():
 
 
 def test_cant_instantiate_interface():
-
     class I(Interface):
         pass
 
@@ -299,12 +303,12 @@ def test_cant_instantiate_interface():
 def test_reject_non_callable_interface_field():
 
     with pytest.raises(TypeError):
+
         class IFace(Interface):
             x = "not allowed"
 
 
 def test_static_method():
-
     class I(Interface):
         @staticmethod
         def foo(a, b):  # pragma: nocover
@@ -314,11 +318,12 @@ def test_static_method():
         pass
 
     class Impl(implements(I)):
-        @my_staticmethod   # allow staticmethod subclasses
+        @my_staticmethod  # allow staticmethod subclasses
         def foo(a, b):  # pragma: nocover
             pass
 
     with pytest.raises(InvalidImplementation) as e:
+
         class Impl(implements(I)):
             @staticmethod
             def foo(self, a, b):  # pragma: nocover
@@ -334,6 +339,7 @@ def test_static_method():
     assert expected == str(e.value)
 
     with pytest.raises(InvalidImplementation) as e:
+
         class Impl(implements(I)):
             def foo(a, b):  # pragma: nocover
                 pass
@@ -349,7 +355,6 @@ def test_static_method():
 
 
 def test_class_method():
-
     class I(Interface):
         @classmethod
         def foo(cls, a, b):  # pragma: nocover
@@ -364,6 +369,7 @@ def test_class_method():
             pass
 
     with pytest.raises(InvalidImplementation) as e:
+
         class Impl(implements(I)):
             @classmethod
             def foo(a, b):  # pragma: nocover
@@ -379,6 +385,7 @@ def test_class_method():
     assert expected == str(e.value)
 
     with pytest.raises(InvalidImplementation) as e:
+
         class Impl(implements(I)):
             def foo(cls, a, b):  # pragma: nocover
                 pass
@@ -394,7 +401,6 @@ def test_class_method():
 
 
 def test_property():
-
     class I(Interface):
         @property
         def foo(self):  # pragma: nocover
@@ -409,6 +415,7 @@ def test_property():
             pass
 
     with pytest.raises(InvalidImplementation) as e:
+
         class Impl(implements(I)):
             def foo(self):  # pragma: nocover
                 pass
@@ -423,6 +430,7 @@ def test_property():
     assert expected == str(e.value)
 
     with pytest.raises(InvalidImplementation) as e:
+
         class Impl(implements(I)):
             @property
             def foo(self, a, b):  # pragma: nocover
@@ -438,6 +446,7 @@ def test_property():
     assert expected == str(e.value)
 
     with pytest.raises(InvalidImplementation) as e:
+
         class Impl(implements(I)):
             def foo(self, a, b):  # pragma: nocover
                 pass
@@ -456,7 +465,6 @@ def test_property():
 
 
 def test_subclass_implements_additional_interface():
-
     class I1(Interface):
         def method1(self):  # pragma: nocover
             pass
@@ -470,6 +478,7 @@ def test_subclass_implements_additional_interface():
             pass
 
     with pytest.raises(InvalidImplementation) as e:
+
         class IncorrectImpl2(Impl1, implements(I2)):
             pass
 
@@ -484,8 +493,8 @@ def test_subclass_implements_additional_interface():
     assert expected == str(e.value)
 
     with pytest.raises(InvalidImplementation) as e:
-        class Implement2ButBreak1(Impl1, implements(I2)):
 
+        class Implement2ButBreak1(Impl1, implements(I2)):
             def method1(self, x):  # pragma: nocover
                 pass
 
@@ -504,9 +513,7 @@ def test_subclass_implements_additional_interface():
 
 
 def test_default():
-
     class IFace(Interface):  # pragma: nocover
-
         def method1(self):
             pass
 
@@ -518,7 +525,6 @@ def test_default():
             return self.method1() + self.method2()
 
     class C(implements(IFace)):  # pragma: nocover
-
         def method1(self):
             return 1
 
@@ -529,9 +535,7 @@ def test_default():
 
 
 def test_default_property():
-
     class IFace(Interface):  # pragma: nocover
-
         @default
         @property
         def default_prop(self):
@@ -543,7 +547,6 @@ def test_default_property():
     assert C().default_prop
 
     class D(implements(IFace)):
-
         @property
         def default_prop(self):
             return False
@@ -552,25 +555,20 @@ def test_default_property():
 
 
 def test_override_default():
-
     class IFace(Interface):  # pragma: nocover
-
         @default
         def default(self):
-            return 'ayy'
+            return "ayy"
 
     class C(implements(IFace)):  # pragma: nocover
-
         def default(self):
-            return 'lmao'
+            return "lmao"
 
-    assert C().default() == 'lmao'
+    assert C().default() == "lmao"
 
 
 def test_conflicting_defaults():
-
     class IFace1(Interface):  # pragma: nocover
-
         def foo(self, a, b, c):
             pass
 
@@ -579,7 +577,6 @@ def test_conflicting_defaults():
             pass
 
     class IFace2(Interface):  # pragma: nocover
-
         def bar(self, x, y, z):
             pass
 
@@ -588,6 +585,7 @@ def test_conflicting_defaults():
             pass
 
     with pytest.raises(InvalidImplementation) as e:
+
         class Impl(implements(IFace1, IFace2)):  # pragma: nocover
             def foo(self, a, b, c):
                 return a + b + c
@@ -608,7 +606,6 @@ def test_conflicting_defaults():
 
 
 def test_default_repr():
-
     @default
     def foo(a, b):  # pragma: nocover
         pass
@@ -622,7 +619,6 @@ def test_default_warns_if_method_uses_non_interface_methods():  # pragma: nocove
     with pytest.warns(UnsafeDefault) as warns:
 
         class HasDefault(Interface):
-
             def interface_method(self, x):
                 pass
 
@@ -729,6 +725,7 @@ def test_wrapped_implementation_incompatible():
         return inner
 
     with pytest.raises(InvalidImplementation) as e:
+
         class C(implements(I)):  # pragma: nocover
             @wrapping_decorator
             def f(self, a, b):  # missing ``c``
@@ -746,9 +743,8 @@ def test_wrapped_implementation_incompatible():
     assert actual_message == expected_message
 
 
-@pytest.mark.parametrize('name', ['MyInterface', None])
+@pytest.mark.parametrize("name", ["MyInterface", None])
 def test_interface_from_class(name):
-
     class MyClass(object):  # pragma: nocover
         def method1(self, x):
             raise AssertionError("method1 called")
@@ -759,13 +755,14 @@ def test_interface_from_class(name):
     iface = Interface.from_class(MyClass, name=name)
 
     if name is None:
-        expected_name = 'MyClassInterface'
+        expected_name = "MyClassInterface"
     else:
         expected_name = name
 
     assert iface.__name__ == expected_name
 
     with pytest.raises(InvalidImplementation) as e:
+
         class C(implements(iface)):  # pragma: nocover
             pass
 
@@ -783,16 +780,14 @@ def test_interface_from_class(name):
 
 
 def test_interface_from_class_method_subset():
-
     class C(object):  # pragma: nocover
-
         def method1(self, x):
             pass
 
         def method2(self, y):
             pass
 
-    iface = Interface.from_class(C, subset=['method1'])
+    iface = Interface.from_class(C, subset=["method1"])
 
     class Impl(implements(iface)):  # pragma: nocover
         def method1(self, x):
@@ -817,7 +812,6 @@ def test_interface_from_class_method_subset():
 
 
 def test_interface_from_class_inherited_methods():
-
     class Base(object):  # pragma: nocover
         def base_method(self, x):
             pass
@@ -871,7 +865,6 @@ def test_interface_from_class_inherited_methods():
 
 
 def test_interface_from_class_magic_methods():
-
     class HasMagicMethods(object):  # pragma: nocover
         def __getitem__(self, key):
             return key

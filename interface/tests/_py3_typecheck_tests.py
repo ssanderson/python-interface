@@ -4,7 +4,6 @@ from ..typecheck import compatible
 
 
 def test_allow_new_params_with_defaults_with_kwonly():
-
     @signature
     def iface(a, b, c):  # pragma: nocover
         pass
@@ -18,7 +17,6 @@ def test_allow_new_params_with_defaults_with_kwonly():
 
 
 def test_allow_reorder_kwonlys():
-
     @signature
     def foo(a, b, c, *, d, e, f):  # pragma: nocover
         pass
@@ -32,7 +30,6 @@ def test_allow_reorder_kwonlys():
 
 
 def test_allow_default_changes():
-
     @signature
     def foo(a, b, c=3, *, d=1, e, f):  # pragma: nocover
         pass
@@ -46,7 +43,6 @@ def test_allow_default_changes():
 
 
 def test_disallow_kwonly_to_positional():
-
     @signature
     def foo(a, *, b):  # pragma: nocover
         pass

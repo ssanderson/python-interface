@@ -19,6 +19,7 @@ class TypedSignature(object):
     obj : callable
         An object from which to extract a signature and a type.
     """
+
     def __init__(self, obj):
         self._type = type(obj)
         if self._type is default:

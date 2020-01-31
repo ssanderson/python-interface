@@ -30,18 +30,22 @@ if PY2:  # pragma: nocover-py3
     def unwrap(func, stop=None):
         # NOTE: implementation is taken from CPython/Lib/inspect.py, Python 3.6
         if stop is None:
+
             def _is_wrapper(f):
-                return hasattr(f, '__wrapped__')
+                return hasattr(f, "__wrapped__")
+
         else:
+
             def _is_wrapper(f):
-                return hasattr(f, '__wrapped__') and not stop(f)
+                return hasattr(f, "__wrapped__") and not stop(f)
+
         f = func  # remember the original func for error reporting
         memo = {id(f)}  # Memoise by id to tolerate non-hashable objects
         while _is_wrapper(func):
             func = func.__wrapped__
             id_func = id(func)
             if id_func in memo:
-                raise ValueError('wrapper loop when unwrapping {!r}'.format(f))
+                raise ValueError("wrapper loop when unwrapping {!r}".format(f))
             memo.add(id_func)
         return func
 
@@ -52,8 +56,7 @@ else:  # pragma: nocover-py2
 
     wraps = functools.wraps
 
-    exec("def raise_from(e, from_):"  # pragma: nocover
-         "    raise e from from_")
+    exec("def raise_from(e, from_):" "    raise e from from_")  # pragma: nocover
 
     def viewkeys(d):
         return d.keys()
@@ -66,21 +69,21 @@ def with_metaclass(meta, *bases):
     # metaclass for one level of class instantiation that replaces itself with
     # the actual metaclass.
     class metaclass(meta):
-
         def __new__(cls, name, this_bases, d):
             return meta(name, bases, d)
-    return type.__new__(metaclass, 'temporary_class', (), {})
+
+    return type.__new__(metaclass, "temporary_class", (), {})
 
 
 __all__ = [
-    'PY2',
-    'PY3',
-    'Parameter',
-    'raise_from',
-    'signature',
-    'unwrap',
-    'viewkeys',
-    'with_metaclass',
-    'wraps',
-    'zip_longest',
+    "PY2",
+    "PY3",
+    "Parameter",
+    "raise_from",
+    "signature",
+    "unwrap",
+    "viewkeys",
+    "with_metaclass",
+    "wraps",
+    "zip_longest",
 ]

@@ -9,6 +9,7 @@ from .functional import keysorted, sliding_window
 class default(object):
     """Default implementation of a function in terms of interface methods.
     """
+
     def __init__(self, implementation):
         self.implementation = implementation
 
@@ -30,17 +31,19 @@ if PY3:  # pragma: nocover-py2
         " part of {iface}."
     )
 
-    def warn_if_defaults_use_non_interface_members(interface_name,
-                                                   defaults,
-                                                   members):
+    def warn_if_defaults_use_non_interface_members(interface_name, defaults, members):
         """Warn if an interface default uses non-interface members of self.
         """
         for method_name, attrs in non_member_attributes(defaults, members):
-            warnings.warn(_DEFAULT_USES_NON_INTERFACE_MEMBER_TEMPLATE.format(
-                iface=interface_name,
-                method=method_name,
-                non_members=bulleted_list(attrs),
-            ), category=UnsafeDefault, stacklevel=3)
+            warnings.warn(
+                _DEFAULT_USES_NON_INTERFACE_MEMBER_TEMPLATE.format(
+                    iface=interface_name,
+                    method=method_name,
+                    non_members=bulleted_list(attrs),
+                ),
+                category=UnsafeDefault,
+                stacklevel=3,
+            )
 
     def non_member_attributes(defaults, members):
         from .typed_signature import TypedSignature
@@ -90,12 +93,14 @@ if PY3:  # pragma: nocover-py2
         # It will **NOT** find usages in which ``local_name`` is aliased to
         # another name.
         for first, second in sliding_window(instrs, 2):
-            if first.opname == 'LOAD_FAST' and first.argval == local_name:
-                if second.opname in ('LOAD_ATTR', 'LOAD_METHOD', 'STORE_ATTR'):
+            if first.opname == "LOAD_FAST" and first.argval == local_name:
+                if second.opname in ("LOAD_ATTR", "LOAD_METHOD", "STORE_ATTR"):
                     used.add(second.argval)
         return used
 
+
 else:  # pragma: nocover-py3
+
     def warn_if_defaults_use_non_interface_members(*args, **kwargs):
         pass
 

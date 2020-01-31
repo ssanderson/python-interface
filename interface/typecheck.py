@@ -37,22 +37,21 @@ def compatible(impl_sig, iface_sig):
        b. The return type of an implementation may be annotated with a
           **subclass** of the type specified by the interface.
     """
-    return all([
-        positionals_compatible(
-            takewhile(is_positional, impl_sig.parameters.values()),
-            takewhile(is_positional, iface_sig.parameters.values()),
-        ),
-        keywords_compatible(
-            valfilter(complement(is_positional), impl_sig.parameters),
-            valfilter(complement(is_positional), iface_sig.parameters),
-        ),
-    ])
+    return all(
+        [
+            positionals_compatible(
+                takewhile(is_positional, impl_sig.parameters.values()),
+                takewhile(is_positional, iface_sig.parameters.values()),
+            ),
+            keywords_compatible(
+                valfilter(complement(is_positional), impl_sig.parameters),
+                valfilter(complement(is_positional), iface_sig.parameters),
+            ),
+        ]
+    )
 
 
-_POSITIONALS = frozenset([
-    Parameter.POSITIONAL_ONLY,
-    Parameter.POSITIONAL_OR_KEYWORD,
-])
+_POSITIONALS = frozenset([Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD])
 
 
 def is_positional(arg):
@@ -89,9 +88,7 @@ def positionals_compatible(impl_positionals, iface_positionals):
 
 
 def keywords_compatible(impl_keywords, iface_keywords):
-    return all(
-        starmap(params_compatible, dzip(impl_keywords, iface_keywords).values())
-    )
+    return all(starmap(params_compatible, dzip(impl_keywords, iface_keywords).values()))
 
 
 def annotations_compatible(impl, iface):

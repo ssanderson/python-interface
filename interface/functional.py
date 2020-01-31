@@ -12,6 +12,7 @@ from .compat import viewkeys
 def complement(f):
     def not_f(*args, **kwargs):
         return not f(*args, **kwargs)
+
     return not_f
 
 
@@ -28,10 +29,7 @@ def valfilter(f, d):
 
 
 def dzip(left, right):
-    return {
-        k: (left.get(k), right.get(k))
-        for k in viewkeys(left) & viewkeys(right)
-    }
+    return {k: (left.get(k), right.get(k)) for k in viewkeys(left) & viewkeys(right)}
 
 
 def sliding_window(iterable, n):

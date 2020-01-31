@@ -4,7 +4,6 @@ from ..typed_signature import TypedSignature
 
 
 def test_compatible_when_equal():
-
     @signature
     def foo(a, b, c):  # pragma: nocover
         pass
@@ -19,7 +18,6 @@ def test_compatible_when_equal():
 
 
 def test_disallow_new_or_missing_positionals():
-
     @signature
     def foo(a, b):  # pragma: nocover
         pass
@@ -33,7 +31,6 @@ def test_disallow_new_or_missing_positionals():
 
 
 def test_disallow_remove_defaults():
-
     @signature
     def iface(a, b=3):  # pragma: nocover
         pass
@@ -46,7 +43,6 @@ def test_disallow_remove_defaults():
 
 
 def test_disallow_reorder_positionals():
-
     @signature
     def foo(a, b):  # pragma: nocover
         pass
@@ -60,7 +56,6 @@ def test_disallow_reorder_positionals():
 
 
 def test_allow_new_params_with_defaults_no_kwonly():
-
     @signature
     def iface(a, b, c):  # pragma: nocover
         pass
@@ -74,7 +69,7 @@ def test_allow_new_params_with_defaults_no_kwonly():
 
 
 def test_first_argument_name():
-    assert TypedSignature(lambda x, y, z: x).first_argument_name == 'x'
+    assert TypedSignature(lambda x, y, z: x).first_argument_name == "x"
     assert TypedSignature(lambda: 0).first_argument_name is None
 
 
