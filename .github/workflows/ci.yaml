@@ -1,0 +1,75 @@
+name: PGContents CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.6
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+      - uses: pre-commit/action@v1.0.1
+
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        name:
+          - py27
+          - py35
+          - py36
+          - py37
+          - py38
+        include:
+          - name: py27
+            python-version: 2.7
+          - name: py35
+            python-version: 3.5
+          - name: py36
+            python-version: 3.6
+          - name: py37
+            python-version: 3.7
+          - name: py38
+            python-version: 3.8
+
+    steps:
+      - name: Dump Matrix Config
+        env:
+          MATRIX: ${{ toJson(matrix) }}
+        run: echo "$MATRIX"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v1
+
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ matrix.name }}
+
+      - name: Install Tox
+        run: |
+          python -m pip install -U pip setuptools
+          python -m pip install tox
+
+      - name: Run Tox
+        run: tox -e ${{ matrix.name }}

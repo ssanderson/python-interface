@@ -13,10 +13,8 @@ def test_sliding_window():
 
 
 def test_keysorted():
-
     @total_ordering
     class Unorderable(object):
-
         def __init__(self, obj):
             self.obj = obj
 
@@ -28,14 +26,14 @@ def test_keysorted():
     with pytest.raises(AssertionError):
         sorted([Unorderable(0), Unorderable(0)])
 
-    d = {'c': Unorderable(3), 'b': Unorderable(2), 'a': Unorderable(1)}
+    d = {"c": Unorderable(3), "b": Unorderable(2), "a": Unorderable(1)}
     items = keysorted(d)
 
-    assert items[0][0] == 'a'
+    assert items[0][0] == "a"
     assert items[0][1].obj == 1
 
-    assert items[1][0] == 'b'
+    assert items[1][0] == "b"
     assert items[1][1].obj == 2
 
-    assert items[2][0] == 'c'
+    assert items[2][0] == "c"
     assert items[2][1].obj == 3
