@@ -1,4 +1,4 @@
-``interface``
+``python-interface``
 =============
 
 |build status|
