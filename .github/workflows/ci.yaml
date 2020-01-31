@@ -34,6 +34,7 @@ jobs:
           - py35
           - py36
           - py37
+          - py38
         include:
           - name: py27
             python-version: 2.7
