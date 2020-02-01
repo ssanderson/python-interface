@@ -1,4 +1,4 @@
-name: PGContents CI
+name: interface-ci
 on:
   push:
     branches:
