@@ -46,3 +46,16 @@ def sliding_window(iterable, n):
     for item in it:
         items.append(item)
         yield tuple(items)
+
+
+def merge(dicts):
+    dicts = list(dicts)
+    if len(dicts) == 0:
+        return {}
+    elif len(dicts) == 1:
+        return dicts[0]
+    else:
+        out = dicts[0].copy()
+        for other in dicts[1:]:
+            out.update(other)
+        return out

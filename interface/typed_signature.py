@@ -45,6 +45,11 @@ class TypedSignature(object):
     def __str__(self):
         return str(self._signature)
 
+    def __repr__(self):
+        return "<TypedSignature type={}, signature={}>".format(
+            self._type.__name__, self._signature,
+        )
+
 
 BUILTIN_FUNCTION_TYPES = (types.FunctionType, types.BuiltinFunctionType)
 

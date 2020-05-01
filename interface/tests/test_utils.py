@@ -1,4 +1,5 @@
 from ..compat import unwrap, wraps
+from ..functional import merge
 from ..utils import is_a, unique
 
 
@@ -20,3 +21,11 @@ def test_wrap_and_unwrap():
         pass
 
     assert unwrap(g) is f
+
+
+def test_merge():
+    assert merge([]) == {}
+    assert merge([{"a": 1, "b": 2}]) == {"a": 1, "b": 2}
+
+    result = merge([{"a": 1}, {"b": 2}, {"a": 3, "c": 4}])
+    assert result == {"a": 3, "b": 2, "c": 4}

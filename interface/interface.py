@@ -6,7 +6,7 @@ from weakref import WeakKeyDictionary
 from .compat import raise_from, with_metaclass
 from .default import default, warn_if_defaults_use_non_interface_members
 from .formatting import bulleted_list
-from .functional import complement, keyfilter, valfilter
+from .functional import complement, keyfilter, merge, valfilter
 from .typecheck import compatible
 from .typed_signature import TypedSignature
 from .utils import is_a, unique
@@ -21,8 +21,22 @@ class InvalidImplementation(TypeError):
     """
 
 
+class InvalidSubInterface(TypeError):
+    """
+    Raised when on attempt to define a subclass of an interface that's not
+    compatible with the parent definition.
+    """
+
+
 CLASS_ATTRIBUTE_WHITELIST = frozenset(
-    ["__doc__", "__module__", "__name__", "__qualname__", "__weakref__"]
+    [
+        "__doc__",
+        "__module__",
+        "__name__",
+        "__qualname__",
+        "__weakref__",
+        "_INTERFACE_IGNORE_MEMBERS",
+    ]
 )
 
 is_interface_field_name = complement(CLASS_ATTRIBUTE_WHITELIST.__contains__)
@@ -72,6 +86,14 @@ def _conflicting_defaults(typename, conflicts):
     return InvalidImplementation(message)
 
 
+def _merge_parent_signatures(bases):
+    return merge(filter(None, (getattr(b, "_signatures") for b in bases)))
+
+
+def _merge_parent_defaults(bases):
+    return merge(filter(None, (getattr(b, "_defaults") for b in bases)))
+
+
 class InterfaceMeta(type):
     """
     Metaclass for interfaces.
@@ -80,22 +102,43 @@ class InterfaceMeta(type):
     """
 
     def __new__(mcls, name, bases, clsdict):
-        signatures = {}
-        defaults = {}
-        for k, v in keyfilter(is_interface_field_name, clsdict).items():
+        signatures = _merge_parent_signatures(bases)
+        defaults = _merge_parent_defaults(bases)
+        ignored = clsdict.get("_INTERFACE_IGNORE_MEMBERS", set())
+
+        for field, v in keyfilter(is_interface_field_name, clsdict).items():
+            if field in ignored:
+                continue
+
             try:
-                signatures[k] = TypedSignature(v)
+                signature = TypedSignature(v)
             except TypeError as e:
                 errmsg = (
                     "Couldn't parse signature for field "
                     "{iface_name}.{fieldname} of type {attrtype}.".format(
-                        iface_name=name, fieldname=k, attrtype=getname(type(v)),
+                        iface_name=name, fieldname=field, attrtype=getname(type(v)),
                     )
                 )
                 raise_from(TypeError(errmsg), e)
 
+            # If we already have a signature for this field from a parent, then
+            # our new signature must be a subtype of the parent signature, so
+            # that any valid call to the new signature must also be a valid
+            # call to the parent signature.
+            if field in signatures and not compatible(signature, signatures[field]):
+                conflicted = signatures[field]
+                raise InvalidSubInterface(
+                    "\nInterface field {new}.{field} conflicts with inherited field of "
+                    "the same name.\n"
+                    "  - {field}{new_sig} != {field}{old_sig}".format(
+                        new=name, field=field, new_sig=signature, old_sig=conflicted,
+                    )
+                )
+            else:
+                signatures[field] = signature
+
             if isinstance(v, default):
-                defaults[k] = v
+                defaults[field] = v
 
         warn_if_defaults_use_non_interface_members(
             name, defaults, set(signatures.keys())
@@ -139,7 +182,7 @@ class InterfaceMeta(type):
             if not issubclass(impl_sig.type, iface_sig.type):
                 mistyped[name] = impl_sig.type
 
-            if not compatible(impl_sig.signature, iface_sig.signature):
+            if not compatible(impl_sig, iface_sig):
                 mismatched[name] = impl_sig
 
         return missing, mistyped, mismatched
@@ -258,6 +301,9 @@ class InterfaceMeta(type):
         )
 
 
+empty_set = frozenset([])
+
+
 class Interface(with_metaclass(InterfaceMeta)):
     """
     Base class for interface definitions.
@@ -313,6 +359,10 @@ class Interface(with_metaclass(InterfaceMeta)):
     :func:`implements`
     """
 
+    # Don't consider these members part of the interface definition for
+    # children of `Interface`.
+    _INTERFACE_IGNORE_MEMBERS = {"__new__", "from_class"}
+
     def __new__(cls, *args, **kwargs):
         raise TypeError("Can't instantiate interface %s" % getname(cls))
 
@@ -349,7 +399,10 @@ class Interface(with_metaclass(InterfaceMeta)):
         )
 
 
-empty_set = frozenset([])
+# Signature requirements are inherited, so make sure the base interface doesn't
+# require any methods of children.
+assert Interface._signatures == {}
+assert Interface._defaults == {}
 
 
 class ImplementsMeta(type):

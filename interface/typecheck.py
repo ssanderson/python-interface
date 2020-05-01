@@ -13,9 +13,9 @@ def compatible(impl_sig, iface_sig):
 
     Parameters
     ----------
-    impl_sig : inspect.Signature
+    impl_sig : interface.typed_signature.TypedSignature
         The signature of the implementation function.
-    iface_sig : inspect.Signature
+    iface_sig : interface.typed_signature.TypedSignature
         The signature of the interface function.
 
     In general, an implementation is compatible with an interface if any valid
@@ -37,6 +37,9 @@ def compatible(impl_sig, iface_sig):
        b. The return type of an implementation may be annotated with a
           **subclass** of the type specified by the interface.
     """
+    # Unwrap to get the underlying inspect.Signature objects.
+    impl_sig = impl_sig.signature
+    iface_sig = iface_sig.signature
     return all(
         [
             positionals_compatible(
