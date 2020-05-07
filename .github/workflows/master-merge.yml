@@ -1,0 +1,15 @@
+name: Draft New Release on Merge to Master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  draft-release:
+    name: Draft New Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release-drafter-config.yml
