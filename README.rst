@@ -1,5 +1,5 @@
 ``python-interface``
-=============
+====================
 
 |build status|
 
@@ -19,5 +19,6 @@ Installation
    $ pip install python-interface
 
 .. _`documentation` : http://interface.readthedocs.io
+
 .. |build status| image:: https://github.com/ssanderson/python-interface/workflows/interface-ci/badge.svg
    :target: https://github.com/ssanderson/python-interface/actions
