@@ -172,3 +172,42 @@ of ``get_all``:
 
    Consider changing ReadOnlyMapping.get_all or making these attributes part of ReadOnlyMapping.
       class ReadOnlyMapping(interface.Interface):
+
+Interface Subclassing
+~~~~~~~~~~~~~~~~~~~~~
+
+Interfaces can inherit requirements from other interfaces via subclassing. For
+example, if we want to create interfaces for read-write and read-only mappings,
+we could do so as follows:
+
+.. code-block:: python
+
+   class ReadOnlyMapping(interface.Interface):
+       def get(self, key):
+           pass
+
+       def keys(self):
+           pass
+
+
+   class ReadWriteMapping(ReadOnlyMapping):
+
+       def set(self, key, value):
+           pass
+
+       def delete(self, key):
+           pass
+
+
+An interface that subclasses from another interface inherits all the function
+signature requirements from its parent interface. In the example above, a class
+implementing ``ReadWriteMapping`` would have to implement ``get``, ``keys``,
+``set``, and ``delete``.
+
+.. warning::
+
+   Subclassing from an interface is not the same as implementing an
+   interface. Subclassing from an interface **creates a new interface** that
+   adds additional methods to the parent interface. Implementing an interface
+   creates a new class whose method signatures must be compatible with the
+   interface being implemented.
