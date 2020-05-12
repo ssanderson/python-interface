@@ -1,3 +1,5 @@
+.. _error-detection:
+
 Error Detection
 ---------------
 

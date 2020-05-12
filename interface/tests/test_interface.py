@@ -890,3 +890,110 @@ def test_interface_from_class_magic_methods():
           - __getitem__(self, key)"""
     )
     assert actual_message == expected_message
+
+
+def test_interface_subclass():
+    class A(Interface):  # pragma: nocover
+        def method_a(self):
+            pass
+
+    class AandB(A):  # pragma: nocover
+        def method_b(self):
+            pass
+
+    with pytest.raises(InvalidImplementation) as exc:
+
+        class JustA(implements(AandB)):  # pragma: nocover
+            def method_a(self):
+                pass
+
+    actual_message = str(exc.value)
+    expected_message = dedent(
+        """
+        class JustA failed to implement interface AandB:
+
+        The following methods of AandB were not implemented:
+          - method_b(self)"""
+    )
+    assert actual_message == expected_message
+
+    with pytest.raises(InvalidImplementation) as exc:
+
+        class JustB(implements(AandB)):  # pragma: nocover
+            def method_b(self):
+                pass
+
+    actual_message = str(exc.value)
+    expected_message = dedent(
+        """
+        class JustB failed to implement interface AandB:
+
+        The following methods of AandB were not implemented:
+          - method_a(self)"""
+    )
+    assert actual_message == expected_message
+
+    class Both(implements(AandB)):  # pragma: nocover
+        def method_a(self):
+            pass
+
+        def method_b(self):
+            pass
+
+
+def test_subclass_conflict_with_different_parents():
+    class A(Interface):  # pragma: nocover
+        def method_a(self):
+            pass
+
+    class B(A):  # pragma: nocover
+        def method_b(self):
+            pass
+
+    with pytest.raises(TypeError) as exc:
+
+        class C1(A):  # pragma: nocover
+            def method_a(self, x):
+                pass
+
+    actual_message = str(exc.value)
+    expected_message = dedent(
+        """
+        Interface field C1.method_a conflicts with inherited field of the same name.
+          - method_a(self, x) != method_a(self)"""
+    )
+    assert actual_message == expected_message
+
+    with pytest.raises(TypeError) as exc:
+
+        class C2(A):  # pragma: nocover
+            def method_b(self, y, z=None):
+                pass
+
+    actual_message = str(exc.value)
+    expected_message = dedent(
+        """
+        Interface field C2.method_b conflicts with inherited field of the same name.
+          - method_b(self, y, z=None) != method_b(self)"""
+    )
+    assert actual_message == expected_message
+
+
+def test_subclass_allow_compatible_extension():
+    class A(Interface):  # pragma: nocover
+        def method_a(self, x):
+            pass
+
+    class B(A):  # pragma: nocover
+        def method_b(self, y):
+            pass
+
+    # Any implementation of C1 is also a valid implementation of A and B, so this is fine.
+    class C1(B):  # pragma: nocover
+        def method_a(self, x, y=3):
+            pass
+
+    # Same here.
+    class C2(B):  # pragma: nocover
+        def method_b(self, y, z=None):
+            pass
