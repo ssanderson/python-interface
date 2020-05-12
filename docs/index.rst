@@ -4,7 +4,7 @@
 :mod:`interface` is a library for declaring interfaces and for statically
 asserting that classes implement those interfaces. It provides stricter
 semantics than Python's built-in :mod:`abc` module, and it aims to produce
-`exceptionally useful error messages`_ when interfaces aren't satisfied.
+:ref:`exceptionally useful error messages <error-detection>` when interfaces aren't satisfied.
 
 :mod:`interface` supports Python 2.7 and Python 3.4+.
 
@@ -50,5 +50,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-.. _`exceptionally useful error messages` : errors.html
