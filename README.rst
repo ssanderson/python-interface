@@ -18,7 +18,7 @@ Installation
 
    $ pip install python-interface
 
-.. _`documentation` : http://interface.readthedocs.io
+.. _`documentation` : http://python-interface.readthedocs.io
 
 .. |build status| image:: https://github.com/ssanderson/python-interface/workflows/interface-ci/badge.svg
    :target: https://github.com/ssanderson/python-interface/actions
