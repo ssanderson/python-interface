@@ -137,7 +137,8 @@ Implementors are not required to implement methods with defaults:
        # get_all(self) will automatically be copied from the interface default.
 
 Default implementations should always be implemented in terms of other
-interface methods.
+interface methods. This ensures that the default is valid for any
+implementation of the interface.
 
 In Python 3, :class:`default` will show a warning if a default implementation
 uses non-interface members of an object:
@@ -172,6 +173,28 @@ of ``get_all``:
 
    Consider changing ReadOnlyMapping.get_all or making these attributes part of ReadOnlyMapping.
       class ReadOnlyMapping(interface.Interface):
+
+Default Properties
+******************
+
+:class:`default` and :class:`property` can be used together to create default properties:
+
+.. code-block:: python
+
+   class ReadOnlyMappingWithSpecialKey(interface.Interface):
+
+       def get(self, key):
+           pass
+
+       @interface.default
+       @property
+       def special_key(self):
+           return self.get('special_key')
+
+.. note::
+
+   The order of decorators in the example above is important: ``@default`` must
+   go above ``@property``.
 
 Interface Subclassing
 ~~~~~~~~~~~~~~~~~~~~~
