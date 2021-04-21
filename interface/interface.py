@@ -81,7 +81,8 @@ def _conflicting_defaults(typename, conflicts):
             The following interfaces provided default implementations for {attr!r}:
             {interfaces}"""
         ).format(
-            attr=attrname, interfaces=bulleted_list(sorted(map(getname, interfaces))),
+            attr=attrname,
+            interfaces=bulleted_list(sorted(map(getname, interfaces))),
         )
     return InvalidImplementation(message)
 
@@ -116,7 +117,9 @@ class InterfaceMeta(type):
                 errmsg = (
                     "Couldn't parse signature for field "
                     "{iface_name}.{fieldname} of type {attrtype}.".format(
-                        iface_name=name, fieldname=field, attrtype=getname(type(v)),
+                        iface_name=name,
+                        fieldname=field,
+                        attrtype=getname(type(v)),
                     )
                 )
                 raise_from(TypeError(errmsg), e)
@@ -131,7 +134,10 @@ class InterfaceMeta(type):
                     "\nInterface field {new}.{field} conflicts with inherited field of "
                     "the same name.\n"
                     "  - {field}{new_sig} != {field}{old_sig}".format(
-                        new=name, field=field, new_sig=signature, old_sig=conflicted,
+                        new=name,
+                        field=field,
+                        new_sig=signature,
+                        old_sig=conflicted,
                     )
                 )
             else:
@@ -228,7 +234,8 @@ class InterfaceMeta(type):
         assert missing or mistyped or mismatched, "Implementation wasn't invalid."
 
         message = "\nclass {C} failed to implement interface {I}:".format(
-            C=getname(t), I=getname(self),
+            C=getname(t),
+            I=getname(self),
         )
         if missing:
             message += dedent(
@@ -293,7 +300,9 @@ class InterfaceMeta(type):
             sorted(
                 [
                     "  - {name}{actual} != {name}{expected}".format(
-                        name=name, actual=bad_sig, expected=self._signatures[name],
+                        name=name,
+                        actual=bad_sig,
+                        expected=self._signatures[name],
                     )
                     for name, bad_sig in mismatched.items()
                 ]
@@ -470,7 +479,9 @@ def format_iface_method_docs(I):
     return "\n".join(
         [
             "{iface_name}.{method_name}{sig}".format(
-                iface_name=iface_name, method_name=method_name, sig=sig,
+                iface_name=iface_name,
+                method_name=method_name,
+                sig=sig,
             )
             for method_name, sig in sorted(list(I._signatures.items()), key=first)
         ]
@@ -564,7 +575,10 @@ def _make_implements():
         )
 
         result = ImplementsMeta(
-            name, (object,), {"__doc__": doc}, interfaces=interfaces,
+            name,
+            (object,),
+            {"__doc__": doc},
+            interfaces=interfaces,
         )
 
         # NOTE: It's important for correct weak-memoization that this is set is

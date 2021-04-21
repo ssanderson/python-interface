@@ -7,8 +7,7 @@ from .functional import keysorted, sliding_window
 
 
 class default(object):
-    """Default implementation of a function in terms of interface methods.
-    """
+    """Default implementation of a function in terms of interface methods."""
 
     def __init__(self, implementation):
         self.implementation = implementation
@@ -32,8 +31,7 @@ if PY3:  # pragma: nocover-py2
     )
 
     def warn_if_defaults_use_non_interface_members(interface_name, defaults, members):
-        """Warn if an interface default uses non-interface members of self.
-        """
+        """Warn if an interface default uses non-interface members of self."""
         for method_name, attrs in non_member_attributes(defaults, members):
             warnings.warn(
                 _DEFAULT_USES_NON_INTERFACE_MEMBER_TEMPLATE.format(
