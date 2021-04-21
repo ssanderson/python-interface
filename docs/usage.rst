@@ -137,7 +137,8 @@ Implementors are not required to implement methods with defaults:
        # get_all(self) will automatically be copied from the interface default.
 
 Default implementations should always be implemented in terms of other
-interface methods.
+interface methods. This ensures that the default is valid for any
+implementation of the interface.
 
 In Python 3, :class:`default` will show a warning if a default implementation
 uses non-interface members of an object:
