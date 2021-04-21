@@ -173,6 +173,28 @@ of ``get_all``:
    Consider changing ReadOnlyMapping.get_all or making these attributes part of ReadOnlyMapping.
       class ReadOnlyMapping(interface.Interface):
 
+Default Properties
+******************
+
+:class:`default` and :class:`property` can be used together to create default properties:
+
+.. code-block:: python
+
+   class ReadOnlyMappingWithSpecialKey(interface.Interface):
+
+       def get(self, key):
+           pass
+
+       @interface.default
+       @property
+       def special_key(self):
+           return self.get('special_key')
+
+.. note::
+
+   The order of decorators in the example above is important: ``@default`` must
+   go above ``@property``.
+
 Interface Subclassing
 ~~~~~~~~~~~~~~~~~~~~~
 
