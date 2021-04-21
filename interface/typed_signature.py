@@ -47,7 +47,8 @@ class TypedSignature(object):
 
     def __repr__(self):
         return "<TypedSignature type={}, signature={}>".format(
-            self._type.__name__, self._signature,
+            self._type.__name__,
+            self._signature,
         )
 
 

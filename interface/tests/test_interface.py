@@ -903,6 +903,7 @@ def test_interface_subclass():
 
     # expected to fail since it's missing method_b
     with pytest.raises(InvalidImplementation) as exc:
+
         class JustA(implements(AandB)):  # pragma: nocover
             def method_a(self):
                 pass
@@ -919,6 +920,7 @@ def test_interface_subclass():
 
     # expected to fail since it's missing method_a
     with pytest.raises(InvalidImplementation) as exc:
+
         class JustB(implements(AandB)):  # pragma: nocover
             def method_b(self):
                 pass
@@ -958,6 +960,7 @@ def test_subclass_conflict_with_different_parents():
 
     # expected to fail since method_a has different signature in interface A
     with pytest.raises(TypeError) as exc:
+
         class C1(A):  # pragma: nocover
             def method_a(self, x):
                 pass
@@ -972,6 +975,7 @@ def test_subclass_conflict_with_different_parents():
 
     # expected to fail since method_b has different signature in interface B
     with pytest.raises(TypeError) as exc:
+
         class C2(B):  # pragma: nocover
             def method_b(self, y, z=None):
                 pass
