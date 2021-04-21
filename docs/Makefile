@@ -20,4 +20,4 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 autobuild:
-	sphinx-autobuild -p 9999 -b html "$(SOURCEDIR)" $(BUILDDIR)/html
+	sphinx-autobuild --port 9999 -b html "$(SOURCEDIR)" $(BUILDDIR)/html
