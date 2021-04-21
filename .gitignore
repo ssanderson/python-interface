@@ -39,6 +39,8 @@ develop-eggs
 .installed.cfg
 coverage.xml
 nosetests.xml
+venv/
+.idea/
 
 # C Extensions
 *.o

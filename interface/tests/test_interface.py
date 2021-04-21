@@ -901,8 +901,8 @@ def test_interface_subclass():
         def method_b(self):
             pass
 
+    # expected to fail since it's missing method_b
     with pytest.raises(InvalidImplementation) as exc:
-
         class JustA(implements(AandB)):  # pragma: nocover
             def method_a(self):
                 pass
@@ -917,8 +917,8 @@ def test_interface_subclass():
     )
     assert actual_message == expected_message
 
+    # expected to fail since it's missing method_a
     with pytest.raises(InvalidImplementation) as exc:
-
         class JustB(implements(AandB)):  # pragma: nocover
             def method_b(self):
                 pass
@@ -933,6 +933,12 @@ def test_interface_subclass():
     )
     assert actual_message == expected_message
 
+    # expected to pass since interface A only requires method_a
+    class JustA2(implements(A)):  # pragma: nocover
+        def method_a(self):
+            pass
+
+    # expected to pass since it implements both methods
     class Both(implements(AandB)):  # pragma: nocover
         def method_a(self):
             pass
@@ -950,8 +956,8 @@ def test_subclass_conflict_with_different_parents():
         def method_b(self):
             pass
 
+    # expected to fail since method_a has different signature in interface A
     with pytest.raises(TypeError) as exc:
-
         class C1(A):  # pragma: nocover
             def method_a(self, x):
                 pass
@@ -964,9 +970,9 @@ def test_subclass_conflict_with_different_parents():
     )
     assert actual_message == expected_message
 
+    # expected to fail since method_b has different signature in interface B
     with pytest.raises(TypeError) as exc:
-
-        class C2(A):  # pragma: nocover
+        class C2(B):  # pragma: nocover
             def method_b(self, y, z=None):
                 pass
 
@@ -977,6 +983,11 @@ def test_subclass_conflict_with_different_parents():
           - method_b(self, y, z=None) != method_b(self)"""
     )
     assert actual_message == expected_message
+
+    # expected to pass since method_b does not exist in interface A
+    class C3(A):  # pragma: nocover
+        def method_b(self, y, z=None):
+            pass
 
 
 def test_subclass_allow_compatible_extension():

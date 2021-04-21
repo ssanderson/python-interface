@@ -25,7 +25,11 @@ def test_wrap_and_unwrap():
 
 def test_merge():
     assert merge([]) == {}
-    assert merge([{"a": 1, "b": 2}]) == {"a": 1, "b": 2}
+
+    input = {"a": 1, "b": 2}
+    output = merge([input])
+    assert output is not input
+    assert output == input
 
     result = merge([{"a": 1}, {"b": 2}, {"a": 3, "c": 4}])
     assert result == {"a": 3, "b": 2, "c": 4}

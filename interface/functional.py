@@ -53,7 +53,7 @@ def merge(dicts):
     if len(dicts) == 0:
         return {}
     elif len(dicts) == 1:
-        return dicts[0]
+        return dicts[0].copy()
     else:
         out = dicts[0].copy()
         for other in dicts[1:]:
